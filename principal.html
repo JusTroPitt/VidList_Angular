@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html ng-app="myWatchList" lang="es" data-bs-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <script src="bootstrap/js/color-modes.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <script src="funciones.js"></script>
+    <!-- <script src="./serviciosServer.js"></script> -->
+    <script src="bootstrap/js/bootstrap.bundle.js"></script>
+    <link href="estilos.css" rel="stylesheet">
+    <link rel="icon" href="imagen.png">
+    <title>VidList</title>
+
+    <script src="./node_modules/angular/angular.min.js"></script>
+    <script src="./node_modules/angular-route/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-sanitize.js"></script>
+    <script src="./controllers.js"></script>
+</head>
+
+<body onload="whichUserRole()" ng-controller="PrincipalController">
+    <header class="principal mb-4">
+        <div class="logo">
+            <a href="paginaprincipal.html">
+                <img src="imagen-transformed.png" alt="logo" class="logo">
+            </a>
+        </div>
+        <div class="dropdown">
+
+            <button class="btn btn-primary dropdown-toggle" type="button" id="usuarioHeader" data-bs-toggle="dropdown">
+                <svg class="bi me-2 bi-person" width="1em" height="1em" fill="currentColor">
+                    <use xlink:href="iconos.svg#userIcon"></use>
+                </svg>
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="index.html"
+                        onclick="sessionStorage.clear()">
+                        <svg class="bi me-2 opacity-50" width="1em" height="1em">
+                            <use xlink:href="iconos.svg#logOut"></use>
+                        </svg>
+                        Cerrar sesión
+                    </a>
+                </li>
+
+                <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light">
+                        <svg class="bi me-2 opacity-50" width="1em" height="1em">
+                            <use xlink:href="iconos.svg#sun-fill"></use>
+                        </svg>
+                        Tema claro
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark">
+                        <svg class="bi me-2 opacity-50" width="1em" height="1em">
+                            <use xlink:href="iconos.svg#moon-fill"></use>
+                        </svg>
+                        Tema oscuro
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+
+    <main>
+        <div class="bg-body-primary">
+            <div id="principal" page-item-click></div>
+            <div id="categoriasContenedor">
+                <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
+                <!-- {{getCategorias()}} -->
+                <div id="categorias">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="1ContenedorModal" tabindex="-1">
+            <div id="modal-dialog" class="modal-dialog modal-md modal-lg modal-xl">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modal-title"></h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div id="contenedor-modal1" class="modal-body pb-5">
+                        <div id="spinner" class="spinner-border"></div>
+                        <div id="modal-body"></div>
+                        <div id="historialBusqueda"
+                            class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
+                        </div>
+                    </div>
+                    <div id="modal-footer" class="modal-footer d-flex">
+                        <div class="col-md-4 justify-content-center d-flex">
+                            <nav>
+                                <ul id="pagination" class="pagination">
+
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="col-md-4 justify-content-end d-flex"><button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cerrar</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="2ContenedorModal" tabindex="-2">
+            <div id="second-modal-dialog" class="modal-dialog modal-sm modal-md">
+                <div class="modal-content">
+                    <div class="modal-header col-md-4 justify-content-center d-flex">
+                        <h5 class="modal-title" id="second-modal-title"></h5>
+                    </div>
+                    <div id="second-modal-body" class="modal-body">
+                    </div>
+                    <div id="second-modal-footer" class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                            data-bs-target="#1ContenedorModal" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- <div ng-repeat='categoria in categorias' class="principal">
+
+            {{}}
+             <span>{{categoria._id}}</span>
+            <td><a ng-href="detail.html?id={{message.id}}">{{message.subject}}</td>
+            <span>{{categoria.nombre}}</span> 
+        <div> -->
+    </main>
+
+    <footer class="d-flex flex-wrap justify-content-between py-3 my-4 border-top">
+
+        <div class="col-md-4 px-2 d-flex align-items-start">
+
+            <span class="mb-3 mb-md-0 text-body-secondary">&copy; Realizado por Juan Pedro Pérez Nieto, 2024</span>
+        </div>
+
+        <ul class="nav col-md-4 px-2 justify-content-end list-unstyled d-flex">
+            <li class="ms-3"><a class="text-body-secondary" href="mailto:jpedro.perez@edu.upct.es">
+                    <svg width="24" height="24">
+                        <use xlink:href="iconos.svg#outlook"></use>
+                    </svg></a></li>
+            <li class="ms-3"><a class="text-body-secondary" href="https://github.com/dperber/JusTroPitt">
+                    <svg width="24" height="24">
+                        <use xlink:href="iconos.svg#github"></use>
+                    </svg></a></li>
+        </ul>
+    </footer>
+</body>
+
+</html>

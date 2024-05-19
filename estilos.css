@@ -1,0 +1,98 @@
+body,
+.card {
+  animation: fadeInAnimation ease 1.5s;
+}
+
+header.principal {
+  box-shadow: 10px 4px 8px 0 rgba(0, 0, 0, 0.5), 0 6px 20px 0 rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-image: url("image.png");
+  background-size: 100%;
+  background-position: right 10% bottom 45%;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+
+}
+
+.logo {
+  flex: 1;
+}
+
+.logo img {
+  width: 125px;
+  height: 133px;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.card:hover,
+.btn:hover,
+.page-item:hover {
+  box-shadow: 10px 4px 8px 0 rgba(0, 0, 0, 0.5), 0 6px 20px 0 rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.5s ease;
+}
+
+
+.modal {
+  animation: fadeInAnimation ease 0.4s;
+}
+
+.btn:hover {
+  color: white;
+}
+
+.page-item:hover {
+  border-radius: 10px
+}
+
+#loading-overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: inherit;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  display: none;
+  opacity: 0.9;
+}
+
+.modal-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body,
+.modal-footer,
+.modal-header {
+  width: 100%;
+}
+
+body.login {
+  height: 100%;
+  background-image: url("fondo.jpeg");
+  background-size: cover;
+}
+
+.form-signin {
+  padding: 22px;
+  max-width: 500px;
+  margin: auto;
+  background-color: inherit;
+  opacity: 0.97;
+  border-radius: 15px;
+}
