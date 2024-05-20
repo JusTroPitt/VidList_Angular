@@ -9,98 +9,38 @@
 //   }
 // }
 
-function getRequestOptions(type = "GET", raw = null, isToken = false) {
-  try {
-    const myHeaders = new Headers();
-    if (isToken == false) {
-      var token = sessionStorage.getItem("token");
-      if (!token) {
-        window.location.href = "login.html?cerrada=true";
-      }
-      myHeaders.append("Authorization", "Bearer " + token);
-    }
-    let requestOptions;
-    if (type === "POST" || type === "PUT") {
-      myHeaders.append("Content-Type", "application/json");
-      requestOptions = {
-        method: type,
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow"
-      };
-    } else {
-      requestOptions = {
-        method: type,
-        headers: myHeaders,
-        redirect: "follow"
-      };
-    }
-    return requestOptions;
-  } catch (error) {
-    console.error("Error al obtener el token:", error);
-    window.location.href = "login.html?cerrada=true"
-  }
-}
-
-function whichUserRole() {
-  try {
-    setNombreUsuario();
-    var userRole = sessionStorage.getItem("rol");
-    if (userRole === "ADMIN_ROLE") {
-       getPanel();
-      // getCategorias();
-    } else {
-      // getCategorias();
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-function setNombreUsuario() {
-  let nombre = sessionStorage.getItem("nombre");
-  let out = document.getElementById("usuarioHeader");
-  out.append(nombre);
-}
-
-function getPanel() {
-  let paneles = crearTitulo("PANELES", "h2", "my-2 mx-1")
-  let usuarios = crearDiv("", " shadow-lg rounded p-3 m-3 bg-body-tertiary");
-  let categorias = crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary ");
-  let videos = crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary");
-
-  let out = document.getElementById("principal");
-
-  usuarios.append(
-    crearTitulo("PANEL DE USUARIOS", "h3"),
-    crearBoton("Lista de Usuarios", function () { getLista("usuarios") }, "#1ContenedorModal", "btn-outline-primary m-2", "listaUsuarios"),
-    crearBoton("Crear usuario", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearUsuario"),
-    crearBoton("Modificar usuario", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarUsuario"),
-    crearBoton("Eliminar usuario", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario"),
-    crearBoton("Buscar usuario por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarUsuario")
-  );
-
-  categorias.append(
-    crearTitulo("PANEL DE CATEGORÍAS", "h3"),
-    crearBoton("Lista de categorías", function () { getLista("categorias") }, "#1ContenedorModal", "btn-outline-primary m-2 ", "listaCategorias"),
-    crearBoton("Crear categoría", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearCategoria"),
-    crearBoton("Modificar categoría", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarCategoria"),
-    crearBoton("Eliminar categoría", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria"),
-    crearBoton("Buscar categoría por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarCategoria")
-  );
-
-  videos.append(
-    crearTitulo("PANEL DE VIDEOS", "h3"),
-    crearBoton("Lista de videos", "", "#1ContenedorModal", "btn-outline-primary m-2 botonVideos", "listaVideos"),
- //   crearBoton("Lista de videos", function () { $scope.getLista("videos") }, "#1ContenedorModal", "btn-outline-primary m-2", "listaVideos"),
-    crearBoton("Añadir video", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearVideo"),
-    crearBoton("Modificar video", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarVideo"),
-    crearBoton("Eliminar video", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarVideo"),
-    crearBoton("Buscar video por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarVideo")
-  );
-  out.append(paneles, usuarios, categorias, videos);
-}
-
+// function getRequestOptions(type = "GET", raw = null, isToken = false) {
+//   try {
+//     const myHeaders = new Headers();
+//     if (isToken == false) {
+//       var token = sessionStorage.getItem("token");
+//       if (!token) {
+//         window.location.href = "login.html?cerrada=true";
+//       }
+//       myHeaders.append("Authorization", "Bearer " + token);
+//     }
+//     let requestOptions;
+//     if (type === "POST" || type === "PUT") {
+//       myHeaders.append("Content-Type", "application/json");
+//       requestOptions = {
+//         method: type,
+//         headers: myHeaders,
+//         body: raw,
+//         redirect: "follow"
+//       };
+//     } else {
+//       requestOptions = {
+//         method: type,
+//         headers: myHeaders,
+//         redirect: "follow"
+//       };
+//     }
+//     return requestOptions;
+//   } catch (error) {
+//     console.error("Error al obtener el token:", error);
+//     window.location.href = "login.html?cerrada=true"
+//   }
+// }
 
 async function showForm(whichModal, id_dada, nombre, url = "", id_categoria = "") {
 

@@ -93,7 +93,19 @@ function verifyToken(req, res, next) {
 
 function processListarCategorias(req, res, db) {
 
-    db.all('SELECT _id, nombre FROM categorias', (err, rows) => {
+    var desde = parseInt(req.query.desde, 10);
+    var limite = parseInt(req.query.limite, 10);
+    var totalCount = 0;
+    db.get(
+        'SELECT COUNT(*) AS totalCount FROM categorias',
+        (err, row) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).send('Error en la consulta de la base de datos');
+            }
+            totalCount = row.totalCount;
+        })
+    db.all('SELECT _id, nombre FROM categorias LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
         if (err) {
             return res.status(500).json({ errormsg: 'Database query error' });
         }
@@ -105,13 +117,34 @@ function processListarCategorias(req, res, db) {
             });
         }
         var data = {
-            categorias: categorias,
-            total: rows.length
+            productos: categorias,
+            total: totalCount
         };
-
+        console.log(data);
+        console.log(desde + " " + limite);
         res.json(data);
     });
 }
+
+//     db.all('SELECT _id, nombre FROM categorias', (err, rows) => {
+//         if (err) {
+//             return res.status(500).json({ errormsg: 'Database query error' });
+//         }
+//         var categorias = [];
+//         for (var i = 0; i < rows.length; i++) {
+//             categorias.push({
+//                 _id: rows[i]._id,
+//                 nombre: rows[i].nombre
+//             });
+//         }
+//         var data = {
+//             categorias: categorias,
+//             total: rows.length
+//         };
+
+//         res.json(data);
+//     });
+// }
 function processListarVideosEnCategoria(req, res, db) {
     var categoria_id = parseInt(req.query._id, 10);
     var desde = parseInt(req.query.desde, 10);
@@ -183,7 +216,42 @@ function processListarVideos(req, res, db) {
             });
         }
         var data = {
-            videos: videos,
+            productos: videos,
+            total: totalCount
+        };
+        console.log(data);
+        console.log(desde + " " + limite);
+        res.json(data);
+    });
+}
+function processListarUsuarios(req, res, db) {
+    var desde = parseInt(req.query.desde, 10);
+    var limite = parseInt(req.query.limite, 10);
+    var totalCount = 0;
+    db.get(
+        'SELECT COUNT(*) AS totalCount FROM users',
+        (err, row) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).send('Error en la consulta de la base de datos');
+            }
+            totalCount = row.totalCount;
+        })
+    db.all('SELECT uid,nombre,correo,rol FROM users LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ errormsg: 'Database query error' });
+        }
+        var usuarios = [];
+        for (var i = 0; i < rows.length; i++) {
+            usuarios.push({
+                uid: rows[i].uid,
+                nombre: rows[i].nombre,
+                correo: rows[i].correo,
+                rol: rows[i].rol,
+            });
+        }
+        var data = {
+            productos: usuarios,
             total: totalCount
         };
         console.log(data);

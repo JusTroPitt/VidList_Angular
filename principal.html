@@ -19,7 +19,7 @@
     <script src="./controllers.js"></script>
 </head>
 
-<body onload="whichUserRole()" ng-controller="PrincipalController">
+<body ng-controller="PrincipalController">
     <header class="principal mb-4">
         <div class="logo">
             <a href="paginaprincipal.html">
@@ -32,6 +32,7 @@
                 <svg class="bi me-2 bi-person" width="1em" height="1em" fill="currentColor">
                     <use xlink:href="iconos.svg#userIcon"></use>
                 </svg>
+                {{nombreUsuario}}
             </button>
             <ul class="dropdown-menu">
                 <li>
@@ -67,12 +68,9 @@
 
     <main>
         <div class="bg-body-primary">
-            <div id="principal"></div>
-            <button  ng-click="getLista('videos')" class="btn shadow btn-outline-primary m-2 listaUsuarios" data-bs-toggle="modal" data-bs-target="#1ContenedorModal">Lista de Videos</button>
-            
+            <div id="principal"></div> 
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
-                <!-- {{getCategorias()}} -->
                 <div id="categorias">
                 </div>
             </div>

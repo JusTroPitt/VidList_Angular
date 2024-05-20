@@ -26,16 +26,20 @@ angular.module('VidList', [])
             });
         };
 
-        VidListAPI.categorias = function () {
-            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
-            return $http.get('/categorias');
-        };
-
         VidListAPI.videosencategoria = function (categoria_id, desde = 0, limite = 4) {
             $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
             return $http.get('/videosencategoria', {
                 params: {
                     _id: categoria_id,
+                    desde: desde,
+                    limite: limite,
+                }
+            });
+        }
+        VidListAPI.busqueda = function (tipo,desde = 0, limite= 9){
+            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
+            return $http.get('/' + tipo, {
+                params: {
                     desde: desde,
                     limite: limite,
                 }
@@ -61,6 +65,27 @@ angular.module('VidList', [])
         }
         return VidListAPI;
     })
+    .factory('ServiciosSecundarios', () => {
+        var ServSecAPI = {};
+        var token = null;
+
+        ServSecAPI.crearBoton = function (texto, listener, target, clases, accion = "") {
+
+            const boton = document.createElement("button");
+            boton.textContent = texto;
+            boton.classList = "btn shadow " + clases + " " + accion;
+            // if (listener) { boton.addEventListener("click", listener); }
+            if (listener) { boton.setAttribute('ng-click', listener); }
+            if (target) {
+                boton.setAttribute("data-bs-toggle", "modal");
+                boton.setAttribute("data-bs-target", target);
+            }
+            return (boton);
+
+
+        };
+        return ServSecAPI;
+    })
     .controller('LoginController', function ($scope, $location, VidListService) {
         $scope.registered = false;
         $scope.user = "";
@@ -77,16 +102,74 @@ angular.module('VidList', [])
                 });
         };
     })
-    .controller('PrincipalController', function ($scope, VidListService, $compile) {
+    .controller('PrincipalController', function ($scope, VidListService, ServiciosSecundarios, $compile) {
         $scope.categorias = [];
 
         // Función para inicializar el controlador
         function init() {
             // Obtener las categorías del servicio
-            VidListService.categorias().then(function (response) {
-                $scope.categorias = response.data.categorias;
-                $scope.getCategorias(); // Llamar getCategorias después de cargar las categorías
-            });
+            $scope.nombreUsuario = sessionStorage.getItem("nombre");
+            VidListService.busqueda("categorias").then(function (response) {
+                $scope.categorias = response.data.productos;
+                $scope.whichUserRole();
+            });            
+        }
+        $scope.whichUserRole = function () {
+
+            try {
+                var userRole = sessionStorage.getItem("rol");
+                if (userRole === "ADMIN_ROLE") {
+                    $scope.getPanel();
+                    $scope.getCategorias();
+                } else {
+                    $scope.getCategorias();
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        $scope.getPanel = function () {
+            let todo = crearDiv("panelCompleto");
+            let paneles = crearTitulo("PANELES", "h2", "my-2 mx-1")
+            let usuarios = crearDiv("", " shadow-lg rounded p-3 m-3 bg-body-tertiary");
+            let categorias = crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary ");
+            let videos = crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary");
+
+            let out = document.getElementById("principal");
+
+            usuarios.append(
+                crearTitulo("PANEL DE USUARIOS", "h3"),
+                ServiciosSecundarios.crearBoton("Lista de Usuarios", "getLista('usuarios')", "#1ContenedorModal", "btn-outline-primary m-2", "listaUsuarios"),
+                crearBoton("Crear usuario", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearUsuario"),
+                crearBoton("Modificar usuario", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarUsuario"),
+                crearBoton("Eliminar usuario", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario"),
+                crearBoton("Buscar usuario por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarUsuario")
+            );
+
+            categorias.append(
+                crearTitulo("PANEL DE CATEGORÍAS", "h3"),
+                ServiciosSecundarios.crearBoton("Lista de categorías",'getLista("categorias")', "#1ContenedorModal", "btn-outline-primary m-2 ", "listaCategorias"),
+                crearBoton("Crear categoría", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearCategoria"),
+                crearBoton("Modificar categoría", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarCategoria"),
+                crearBoton("Eliminar categoría", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria"),
+                crearBoton("Buscar categoría por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarCategoria")
+            );
+            videos.append(
+                crearTitulo("PANEL DE VIDEOS", "h3"),
+                ServiciosSecundarios.crearBoton("Lista de videos", "getLista('videos')", "#1ContenedorModal", "btn-outline-primary m-2", "listaVideos"),
+                crearBoton("Añadir video", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearVideo"),
+                crearBoton("Modificar video", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarVideo"),
+                crearBoton("Eliminar video", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarVideo"),
+                crearBoton("Buscar video por id", showForm, "#1ContenedorModal", "btn-outline-info m-2", "buscarVideo")
+            );
+
+            todo.append(paneles, usuarios, categorias, videos);
+
+            var compiledElement = $compile(todo)($scope);
+            for (let numero = 0; numero < compiledElement.length; numero++) {
+                out.appendChild(compiledElement[numero]);
+            }
         }
         // Función para crear y mostrar las categorías en el DOM
         $scope.getCategorias = function () {
@@ -137,7 +220,7 @@ angular.module('VidList', [])
         };
 
         $scope.getLista = function (tipo, numeroPagina = 1) {
-            //async function getLista(tipo, numeroPagina = 1) {
+           
             showLoadingSpinner();
 
             let limite = 9;
@@ -153,54 +236,22 @@ angular.module('VidList', [])
 
             let lista = crearDiv("", "album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3");
 
-            //     const response = await fetch("https://labingsoft.onrender.com/api/" + tipo + "?limite=" + limite + "&desde=" + desde, requestOptions);
-            if (tipo === "videos") {
-
-                VidListService.videos(desde, limite).then(function (response) {
-                    $scope.videosTotal = response.data.videos || [];
+                VidListService.busqueda(tipo,desde, limite).then(function (response) {
+                    $scope.TotalObjetos = response.data.productos || [];
                     console.log(response.data);
                     $scope.totalObjetos = response.data.total || 0;
 
-                    for (const vid of $scope.videosTotal) {
-                        let video = crearCard(vid, tipo, 2)
-                        lista.append(video);
+                    for (const obj of $scope.TotalObjetos) {
+                        let objeto = crearCard(obj, tipo, 2)
+                        lista.append(objeto);
+                    
                     }
-
-                    // let totalObjetos = result.total;
                     let totalPaginas = Math.ceil($scope.totalObjetos / limite);
                     $scope.crearPaginacion(totalPaginas, numeroPagina, tipo);
                     out.append(lista);
 
                     hideLoadingSpinner();
                 });
-            };
-            //       for (const vid of result.productos) {
-            //         let video = crearCard(vid, tipo, 2)
-            //         lista.append(video);
-            //       }
-
-            //     } else if (tipo === "usuarios") {
-            //       for (const usr of result.usuarios) {
-            //         let usuario = crearCard(usr, tipo, 2);
-            //         lista.append(usuario);
-            //       }
-            //     } else {
-            //       for (const ctg of result.categorias) {
-            //         let categoria = crearCard(ctg, tipo, 2);
-            //         lista.append(categoria);
-            //       }
-            //     }
-            //     let totalObjetos = result.total;
-            //     let totalPaginas = Math.ceil(totalObjetos / limite);
-            //     crearPaginacion(totalPaginas, numeroPagina, tipo);
-            //     out.append(lista);
-            //   } catch (error) {
-            //     console.error(error);
-            //     out.append("Ha ocurrido un error imprevisto");
-            //   } finally {
-            //     hideLoadingSpinner();
-            //   }
-
         }
 
         $scope.cambiarPagina = function (pageNumber, tipo, id_categoria) {
@@ -209,7 +260,6 @@ angular.module('VidList', [])
             }
             else {
                 $scope.getVideos(id_categoria, pageNumber);
-                // element.scrollIntoView(true);
             }
         }
         $scope.crearPaginacion = function (totalPaginas, numeroPagina, tipo, id_categoria) {
@@ -231,15 +281,14 @@ angular.module('VidList', [])
                 for (let numero = 0; numero < compiledElement.length; numero++) {
                     document.getElementById('pagination').appendChild(compiledElement[numero]);
                 }
-            } else if(id_categoria){
+            } else if (id_categoria) {
                 var compiledElement = $compile(paginationHTML)($scope);
-            console.log(paginationHTML);
+                console.log(paginationHTML);
 
-            for (let numero = 0; numero < compiledElement.length; numero++) {
-                document.getElementById('paginacion' + id_categoria).appendChild(compiledElement[numero]);
+                for (let numero = 0; numero < compiledElement.length; numero++) {
+                    document.getElementById('paginacion' + id_categoria).appendChild(compiledElement[numero]);
+                }
             }
-            }
-
 
         };
 
