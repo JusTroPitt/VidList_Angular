@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="myWatchList" lang="es" data-bs-theme="dark">
+<html ng-app="VidList" lang="es" data-bs-theme="dark">
 
 <head>
     <meta charset="utf-8">
@@ -67,7 +67,9 @@
 
     <main>
         <div class="bg-body-primary">
-            <div id="principal" page-item-click></div>
+            <div id="principal"></div>
+            <button  ng-click="getLista('videos')" class="btn shadow btn-outline-primary m-2 listaUsuarios" data-bs-toggle="modal" data-bs-target="#1ContenedorModal">Lista de Videos</button>
+            
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
                 <!-- {{getCategorias()}} -->
@@ -143,7 +145,7 @@
                     <svg width="24" height="24">
                         <use xlink:href="iconos.svg#outlook"></use>
                     </svg></a></li>
-            <li class="ms-3"><a class="text-body-secondary" href="https://github.com/dperber/JusTroPitt">
+            <li class="ms-3"><a class="text-body-secondary" href="https://github.com/JusTroPitt/VidList_Angular">
                     <svg width="24" height="24">
                         <use xlink:href="iconos.svg#github"></use>
                     </svg></a></li>

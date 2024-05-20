@@ -112,7 +112,7 @@ function processListarCategorias(req, res, db) {
         res.json(data);
     });
 }
-function processListarVideos(req, res, db) {
+function processListarVideosEnCategoria(req, res, db) {
     var categoria_id = parseInt(req.query._id, 10);
     var desde = parseInt(req.query.desde, 10);
     var limite = parseInt(req.query.limite, 10);
@@ -153,6 +153,44 @@ function processListarVideos(req, res, db) {
         res.json(data);
     });
 }
+function processListarVideos(req, res, db) {
+    var desde = parseInt(req.query.desde, 10);
+    var limite = parseInt(req.query.limite, 10);
+    var totalCount = 0;
+    db.get(
+        'SELECT COUNT(*) AS totalCount FROM videos',
+        (err, row) => {
+            if (err) {
+                console.error(err.message);
+                return res.status(500).send('Error en la consulta de la base de datos');
+            }
+            totalCount = row.totalCount;
+        })
+    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,videos.categoria_id,categorias.nombre AS nombreCategoria FROM videos INNER JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ errormsg: 'Database query error' });
+        }
+        var videos = [];
+        for (var i = 0; i < rows.length; i++) {
+            videos.push({
+                _id: rows[i]._id,
+                nombre: rows[i].nombreVideo,
+                url: rows[i].url,
+                categoria: {
+                    _id: rows[i].categoria_id,
+                    nombre: rows[i].nombreCategoria
+                }
+            });
+        }
+        var data = {
+            videos: videos,
+            total: totalCount
+        };
+        console.log(data);
+        console.log(desde + " " + limite);
+        res.json(data);
+    });
+}
 // Configurar la acción asociada al login
 router.post('/login', (req, res) => {
     if (!req.body.user || !req.body.password) {
@@ -166,8 +204,16 @@ router.get('/categorias', verifyToken, (req, res) => {
     processListarCategorias(req, res, db);
 });
 
+router.get('/videosencategoria', verifyToken, (req, res) => {
+    processListarVideosEnCategoria(req, res, db);
+});
+
 router.get('/videos', verifyToken, (req, res) => {
     processListarVideos(req, res, db);
+});
+
+router.get('/usuarios', verifyToken, (req, res) => {
+    processListarUsuarios(req, res, db);
 });
 
 // Añadir las rutas al servidor

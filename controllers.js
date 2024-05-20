@@ -1,11 +1,11 @@
 'use strict';
 
-angular.module('myWatchList', [])
-    .factory('myWatchListService', ($http) => {
-        var myWatchListAPI = {};
+angular.module('VidList', [])
+    .factory('VidListService', ($http) => {
+        var VidListAPI = {};
         var token = null;
 
-        myWatchListAPI.login = function (username, passwd) {
+        VidListAPI.login = function (username, passwd) {
             return $http({
                 method: "POST",
                 url: '/login', //Es hacia donde se envia la petición dentro del servidor
@@ -26,20 +26,14 @@ angular.module('myWatchList', [])
             });
         };
 
-        myWatchListAPI.logout = function () {
-            token = null;
-            $http.defaults.headers.common['Authorization'] = null;
-            return $http.get('/logout');
-        };
-
-        myWatchListAPI.categorias = function () {
+        VidListAPI.categorias = function () {
             $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
             return $http.get('/categorias');
         };
 
-        myWatchListAPI.videos = function (categoria_id, desde = 0, limite = 4) {
+        VidListAPI.videosencategoria = function (categoria_id, desde = 0, limite = 4) {
             $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
-            return $http.get('/videos', {
+            return $http.get('/videosencategoria', {
                 params: {
                     _id: categoria_id,
                     desde: desde,
@@ -47,44 +41,33 @@ angular.module('myWatchList', [])
                 }
             });
         }
-        myWatchListAPI.email = function (uid) {
+        VidListAPI.videos = function (desde = 0, limite = 9) {
             $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
-            return $http.get('/email/' + uid);
-        };
-
-        return myWatchListAPI;
+            return $http.get('/videos', {
+                params: {
+                    desde: desde,
+                    limite: limite,
+                }
+            });
+        }
+        VidListAPI.usuarios = function (desde = 0, limite = 9) {
+            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
+            return $http.get('/usuarios', {
+                params: {
+                    desde: desde,
+                    limite: limite,
+                }
+            });
+        }
+        return VidListAPI;
     })
-    // .config(function ($routeProvider, $httpProvider) {
-    //     $routeProvider.when('/', {
-    //         controller: 'LoginController',
-    //          templateUrl: 'index.html'
-    //     }).when('/detail/:id', {
-    //         controller: 'DetailController',
-    //         templateUrl: 'detail.html'
-    //     }).otherwise({
-    //         redirectTo: '/'
-    //     });
-
-    //     // Agregar interceptor de autenticación
-    //     $httpProvider.interceptors.push('authInterceptor');
-    // })
-    // .factory('authInterceptor', function ($q, $location) {
-    //     return {
-    //         responseError: function (response) {
-    //             if (response.status === 403 || response.status === 401) {
-    //                 $location.path('/');
-    //             }
-    //             return $q.reject(response);
-    //         }
-    //     };
-    // })
-    .controller('LoginController', function ($scope, $location, myWatchListService) {
+    .controller('LoginController', function ($scope, $location, VidListService) {
         $scope.registered = false;
         $scope.user = "";
         $scope.password = "";
 
         $scope.register = () => {
-            myWatchListService.login($scope.user, $scope.password)
+            VidListService.login($scope.user, $scope.password)
                 .then(function (response) {
                     $scope.registered = response.data.usuario != undefined;
                     if ($scope.registered) {
@@ -94,13 +77,13 @@ angular.module('myWatchList', [])
                 });
         };
     })
-    .controller('PrincipalController', function ($scope, myWatchListService, $compile) {
+    .controller('PrincipalController', function ($scope, VidListService, $compile) {
         $scope.categorias = [];
 
         // Función para inicializar el controlador
         function init() {
             // Obtener las categorías del servicio
-            myWatchListService.categorias().then(function (response) {
+            VidListService.categorias().then(function (response) {
                 $scope.categorias = response.data.categorias;
                 $scope.getCategorias(); // Llamar getCategorias después de cargar las categorías
             });
@@ -127,7 +110,7 @@ angular.module('myWatchList', [])
             let limite = 4;
             let desde = -limite + limite * numeroPagina;
 
-            myWatchListService.videos(id_categoria, desde, limite).then(function (response) {
+            VidListService.videosencategoria(id_categoria, desde, limite).then(function (response) {
                 $scope.videos = response.data.videos || [];
                 console.log(response.data);
                 $scope.totalVideos = response.data.total || 0;
@@ -153,9 +136,76 @@ angular.module('myWatchList', [])
             });
         };
 
+        $scope.getLista = function (tipo, numeroPagina = 1) {
+            //async function getLista(tipo, numeroPagina = 1) {
+            showLoadingSpinner();
+
+            let limite = 9;
+            let desde = -limite + limite * numeroPagina;
+            let dialog = document.getElementById("modal-dialog")
+            let contenedor = document.getElementById("contenedor-modal1");
+            contenedor.style.width = "auto";
+            let out = document.getElementById("modal-body");
+            let titulo = document.getElementById("modal-title");
+            dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+            limpieza("", 1);
+            titulo.textContent = "Lista de " + tipo;
+
+            let lista = crearDiv("", "album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3");
+
+            //     const response = await fetch("https://labingsoft.onrender.com/api/" + tipo + "?limite=" + limite + "&desde=" + desde, requestOptions);
+            if (tipo === "videos") {
+
+                VidListService.videos(desde, limite).then(function (response) {
+                    $scope.videosTotal = response.data.videos || [];
+                    console.log(response.data);
+                    $scope.totalObjetos = response.data.total || 0;
+
+                    for (const vid of $scope.videosTotal) {
+                        let video = crearCard(vid, tipo, 2)
+                        lista.append(video);
+                    }
+
+                    // let totalObjetos = result.total;
+                    let totalPaginas = Math.ceil($scope.totalObjetos / limite);
+                    $scope.crearPaginacion(totalPaginas, numeroPagina, tipo);
+                    out.append(lista);
+
+                    hideLoadingSpinner();
+                });
+            };
+            //       for (const vid of result.productos) {
+            //         let video = crearCard(vid, tipo, 2)
+            //         lista.append(video);
+            //       }
+
+            //     } else if (tipo === "usuarios") {
+            //       for (const usr of result.usuarios) {
+            //         let usuario = crearCard(usr, tipo, 2);
+            //         lista.append(usuario);
+            //       }
+            //     } else {
+            //       for (const ctg of result.categorias) {
+            //         let categoria = crearCard(ctg, tipo, 2);
+            //         lista.append(categoria);
+            //       }
+            //     }
+            //     let totalObjetos = result.total;
+            //     let totalPaginas = Math.ceil(totalObjetos / limite);
+            //     crearPaginacion(totalPaginas, numeroPagina, tipo);
+            //     out.append(lista);
+            //   } catch (error) {
+            //     console.error(error);
+            //     out.append("Ha ocurrido un error imprevisto");
+            //   } finally {
+            //     hideLoadingSpinner();
+            //   }
+
+        }
+
         $scope.cambiarPagina = function (pageNumber, tipo, id_categoria) {
             if (tipo) {
-                //       await getLista(tipo, pageNumber)
+                $scope.getLista(tipo, pageNumber)
             }
             else {
                 $scope.getVideos(id_categoria, pageNumber);
@@ -168,21 +218,30 @@ angular.module('myWatchList', [])
 
             for (let numero = 1; numero <= totalPaginas; numero++) {
                 if (tipo) {
-                    paginationHTML += `<li class="page-item ${numero === numeroPagina ? 'active' : ''}"><a class="page-link" href="#" ng-click="cambiarPagina(${numero}, '${tipo}')">${numero}</a></li>`;
+                    paginationHTML += `<li class="page-item ${numero === numeroPagina ? 'active' : ''}"><a class="page-link" ng-click="cambiarPagina(${numero}, '${tipo}')">${numero}</a></li>`;
                 } else if (id_categoria) {
                     paginationHTML += `<li class="page-item ${numero === numeroPagina ? 'active' : ''}"><a class="page-link" ng-click="cambiarPagina(${numero},'', '${id_categoria}')">${numero}</a></li>`;
                 }
             }
-            var compiledElement = $compile(paginationHTML)($scope);
+
+            if (tipo) {
+                var compiledElement = $compile(paginationHTML)($scope);
+                console.log(paginationHTML);
+
+                for (let numero = 0; numero < compiledElement.length; numero++) {
+                    document.getElementById('pagination').appendChild(compiledElement[numero]);
+                }
+            } else if(id_categoria){
+                var compiledElement = $compile(paginationHTML)($scope);
             console.log(paginationHTML);
 
             for (let numero = 0; numero < compiledElement.length; numero++) {
                 document.getElementById('paginacion' + id_categoria).appendChild(compiledElement[numero]);
             }
+            }
 
 
         };
 
-        // Inicializar el controlador
         init();
     })

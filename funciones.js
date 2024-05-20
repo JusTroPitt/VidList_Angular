@@ -91,7 +91,8 @@ function getPanel() {
 
   videos.append(
     crearTitulo("PANEL DE VIDEOS", "h3"),
-    crearBoton("Lista de videos", function () { getLista("videos") }, "#1ContenedorModal", "btn-outline-primary m-2", "listaVideos"),
+    crearBoton("Lista de videos", "", "#1ContenedorModal", "btn-outline-primary m-2 botonVideos", "listaVideos"),
+ //   crearBoton("Lista de videos", function () { $scope.getLista("videos") }, "#1ContenedorModal", "btn-outline-primary m-2", "listaVideos"),
     crearBoton("Añadir video", showForm, "#1ContenedorModal", "btn-outline-success m-2", "crearVideo"),
     crearBoton("Modificar video", showForm, "#1ContenedorModal", "btn-outline-warning m-2", "modificarVideo"),
     crearBoton("Eliminar video", showForm, "#1ContenedorModal", "btn-outline-danger m-2", "eliminarVideo"),
