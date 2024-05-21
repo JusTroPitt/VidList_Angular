@@ -42,7 +42,7 @@
 //   }
 // }
 
-async function showForm(whichModal, id_dada, nombre, url = "", id_categoria = "") {
+async function showForm(whichModal = 1, id_dada, nombre, url = "", id_categoria = "") {
 
   hideLoadingSpinner(); //A veces no se llega a esconder despues de haber aparecido antes
   var elemento = event.currentTarget;
@@ -218,10 +218,10 @@ function crearCard(objeto, tipo, whichModal) {
 
   if (tipo === "usuarios") {
     card = crearDiv("", "card h-100 md-2 my-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
-    card.id = objeto.uid;
+    card.id = tipo + objeto.uid;
     let correo = crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
     let uid = crearTitulo("UID: " + objeto.uid, "h6", "card-text");
-    let estado = crearTitulo("Estado: " + objeto.estado, "h6", "card-text");
+    let estado = crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
     let modificar = crearBoton("Modificar usuario", function () { showForm(whichModal, objeto.uid, objeto.nombre); }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuario");
     let eliminar = crearBoton("Eliminar usuario", function () { showForm(whichModal, objeto.uid) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario");
     if (objeto.estado == false) {
@@ -235,7 +235,7 @@ function crearCard(objeto, tipo, whichModal) {
     card = crearDiv("", "card h-100 md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
     let id = crearTitulo("ID: " + objeto._id, "h6");
     let vid = crearIframe(objeto);
-    card.id = objeto._id;
+    card.id = tipo + objeto._id;
     cardbody.append(nombre);
     if (sessionStorage.getItem("rol") == "ADMIN_ROLE") {
       let categoria = crearTitulo(objeto.categoria.nombre, "h5", "card-card-subtitle mb-2 text-muted");
@@ -250,7 +250,7 @@ function crearCard(objeto, tipo, whichModal) {
   } else {
     card = crearDiv("", "card md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
     let id = crearTitulo("ID: " + objeto._id, "h6", "card-card-subtitle mb-2 text-muted");
-    card.id = objeto._id;
+    card.id = tipo + objeto._id;
     let modificar = crearBoton("Modificar categoría", function () { showForm(whichModal, objeto._id, objeto.nombre) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategoria");
     let eliminar = crearBoton("Eliminar categoría", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria");
     botones.append(modificar, eliminar);
