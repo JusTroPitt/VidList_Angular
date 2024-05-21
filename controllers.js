@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('VidList', [])
-    .factory('VidListService', ($http) => {
+    .factory('VidListService', ($http,ServiciosSecundarios) => {
         var VidListAPI = {};
         var token = null;
 
@@ -57,7 +57,7 @@ angular.module('VidList', [])
             });
         };
 
-        VidListAPI.modificar = function (tipo,id, nombre, correo, rol, password, url, categoria) {
+        VidListAPI.modificar = function (tipo, id, nombre, correo, rol, password, url, categoria) {
 
             let datos = {};
             datos.id = id;
@@ -76,9 +76,9 @@ angular.module('VidList', [])
                 console.log(response.data);
                 return response;
             })
-            .catch(function (error) {
-                     console.log('Error al modificar objeto:', error);
-                 });
+                .catch(function (error) {
+                    console.log('Error al modificar objeto:', error);
+                });
         };
 
         // .then(function (response) {
@@ -106,11 +106,72 @@ angular.module('VidList', [])
                 }
             });
         }
+        VidListAPI.busquedaEspecifica = function (tipo, id) {
+
+            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
+            return $http.get("/" + tipo+ "/" + id)
+                .then(function (response) {
+
+                    let out = document.getElementById("historialBusqueda");
+
+                    let objeto = ServiciosSecundarios.crearCard(response.data, tipo, 2);
+                    out.prepend(objeto);
+
+                })
+        }
         return VidListAPI;
     })
     .factory('ServiciosSecundarios', () => {
         var ServSecAPI = {};
 
+        ServSecAPI.crearCard = function (objeto, tipo, whichModal) {
+            let card;
+            let columna = crearDiv("", "col mb-2");
+            let cardbody = crearDiv("", "card-body");
+            let nombre = crearTitulo(objeto.nombre, "h4", "card-title");
+            let botones = crearDiv("", "", " display: flex;align-items: center;justify-content: center");
+
+            if (tipo === "usuarios") {
+                card = crearDiv("", "card h-100 md-2 my-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+                card.id = tipo + objeto.uid;
+                let correo = crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
+                let uid = crearTitulo("UID: " + objeto.uid, "h6", "card-text");
+                let rol = crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
+                let modificar = crearBoton("Modificar usuario", function () { showForm(whichModal, objeto.uid, objeto.nombre); }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuario");
+                let eliminar = crearBoton("Eliminar usuario", function () { showForm(whichModal, objeto.uid) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario");
+  
+                botones.append(modificar, eliminar);
+                cardbody.append(nombre, correo, uid, rol, botones);
+                card.append(cardbody);
+            } else if (tipo === "videos") {
+                card = crearDiv("", "card h-100 md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+                let id = crearTitulo("ID: " + objeto._id, "h6");
+                let vid = crearIframe(objeto);
+                card.id = tipo + objeto._id;
+                cardbody.append(nombre);
+                if (sessionStorage.getItem("rol") == "ADMIN_ROLE") {
+                    let categoria = crearTitulo(objeto.categoria.nombre, "h5", "card-card-subtitle mb-2 text-muted");
+                    let ctg_id = crearTitulo("ID de la categoría: " + objeto.categoria._id, "h6", "card-text");
+                    let modificar = crearBoton("Modificar video", function () { showForm(whichModal, objeto._id, objeto.nombre, objeto.url, objeto.categoria._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarVideo");
+                    let eliminar = crearBoton("Eliminar video", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarVideo");
+                    botones.append(modificar, eliminar);
+                    botones.style = "  display: flex;align-items: center;justify-content: center";
+                    cardbody.append(categoria, id, ctg_id, botones);
+                }
+                card.append(vid, cardbody);
+            } else {
+                card = crearDiv("", "card md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+                let id = crearTitulo("ID: " + objeto._id, "h6", "card-card-subtitle mb-2 text-muted");
+                card.id = tipo + objeto._id;
+                let modificar = crearBoton("Modificar categoría", function () { showForm(whichModal, objeto._id, objeto.nombre) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategoria");
+                let eliminar = crearBoton("Eliminar categoría", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria");
+                botones.append(modificar, eliminar);
+                cardbody.append(nombre, id, botones);
+                card.append(cardbody);
+            }
+            columna.append(card);
+            return columna;
+        }
         ServSecAPI.crearBoton = function (texto, listener, target, clases, accion = "") {
 
             const boton = document.createElement("button");
@@ -246,7 +307,7 @@ angular.module('VidList', [])
                     let lista = crearDiv("", "row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3  row-cols-xl-4 row-cols-xxl-4 g-3")
                     for (const video of $scope.videos) {
 
-                        let card = crearCard(video, "videos", 1);
+                        let card = ServiciosSecundarios.crearCard(video, "videos", 1);
                         lista.append(card);
                         console.log(totalVideos);
                     }
@@ -283,7 +344,7 @@ angular.module('VidList', [])
                 $scope.totalObjetos = response.data.total || 0;
 
                 for (const obj of $scope.TotalObjetos) {
-                    let objeto = crearCard(obj, tipo, 2)
+                    let objeto = ServiciosSecundarios.crearCard(obj, tipo, 2)
                     lista.append(objeto);
 
                 }
@@ -332,7 +393,7 @@ angular.module('VidList', [])
                     case clases.contains("buscarCategoria"):
                         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                         var id = document.getElementById('id').value;
-                        buscar("categorias", id);
+                        VidListService.busquedaEspecifica("categorias", id);
                         break;
                     case clases.contains("eliminarCategoria"):
                         if (id_dada) { var id = id_dada } else {
@@ -355,7 +416,7 @@ angular.module('VidList', [])
                     case clases.contains("buscarVideo"):
                         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                         var id = document.getElementById('id').value;
-                        buscar("videos", id);
+                        VidListService.busquedaEspecifica("videos", id);
                         break;
                     case clases.contains("eliminarVideo"):
                         if (id_dada) {
@@ -368,26 +429,26 @@ angular.module('VidList', [])
                     case clases.contains("crearVideo"):
                         var nombre = document.getElementById('Nombre').value;
                         var url = document.getElementById("url").value;
-                      //  var categoria = document.getElementById("id_categoria").value
-                      var categoria = $scope.id_categoria;
+                        //  var categoria = document.getElementById("id_categoria").value
+                        var categoria = $scope.id_categoria;
                         VidListService.crear("videos", nombre, "", "", "", url, categoria);
                         break;
                     case clases.contains("modificarVideo"):
                         var nombre = document.getElementById('Nombre').value;
                         var url = document.getElementById("url").value;
-                      //  var categoria = document.getElementById("id_categoria").value
-                      var categoria = $scope.id_categoria;
+                        //  var categoria = document.getElementById("id_categoria").value
+                        var categoria = $scope.id_categoria;
                         if (id_dada) {
                             var id = id_dada;
                         } else {
                             var id = document.getElementById('id').value;
                         }
-                        VidListService.modificar("videos", id, nombre, "","","", url, categoria);
+                        VidListService.modificar("videos", id, nombre, "", "", "", url, categoria);
                         break;
                     case clases.contains("buscarUsuario"):
                         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                         var uid = document.getElementById('uid').value;
-                        buscar("usuarios", uid);
+                        VidListService.busquedaEspecifica("usuarios", uid);
                         break;
                     case clases.contains("eliminarUsuario"):
                         if (id_dada) { var uid = id_dada } else {
@@ -415,7 +476,7 @@ angular.module('VidList', [])
                         if (password.length < 8) {
                             alert("La contraseña debe tener al menos 8 caracteres");
                         } else {
-                            VidListService.modificar("usuarios", uid, nombre,correo,"USER_ROLE", password);
+                            VidListService.modificar("usuarios", uid, nombre, correo, "USER_ROLE", password);
                         }
                         break;
                 }
@@ -467,29 +528,29 @@ angular.module('VidList', [])
             //opciones.id = "id_categoria";
             if (required === true) { opciones.required = true; }
             opciones.classList = "form-select form-control my-0";
-            opciones.setAttribute("ng-model",nombre);
-            opciones.setAttribute("ng-options","categoria._id as categoria.nombre for categoria in categorias" )
+            opciones.setAttribute("ng-model", nombre);
+            opciones.setAttribute("ng-options", "categoria._id as categoria.nombre for categoria in categorias")
             var label = document.createElement('label');
             label.textContent = "Categoría";
             label.setAttribute('for', "opciones");
             label.classList = "my-0";
 
             const preseleccion = document.createElement('option');
-           // preseleccion.classList = "dropdown-item";
+            // preseleccion.classList = "dropdown-item";
             preseleccion.text = "Seleccione una categoría";
             preseleccion.value = "";
             opciones.appendChild(preseleccion);
 
-              //  $scope.categoria_id = value;
-               // $scope.categoria_id.selected = true;
-                container.append(opciones, label);
-                return container;
-                //     }
-                //     catch (error) {
-                //       console.error('Hubo un problema con la petición fetch:', error);
-                //     }
+            //  $scope.categoria_id = value;
+            // $scope.categoria_id.selected = true;
+            container.append(opciones, label);
+            return container;
+            //     }
+            //     catch (error) {
+            //       console.error('Hubo un problema con la petición fetch:', error);
+            //     }
 
-          //  });
+            //  });
         }
 
 

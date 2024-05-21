@@ -95,13 +95,13 @@ function processModificarVideo(req, res, db) {
     var categoria = req.body.categoria;
     var id = req.body.id;
 
-    db.run('UPDATE videos SET nombre = ?, url = ?, categoria_id = ? WHERE _id = ?', [nombre, url, categoria,id], function (err) {
+    db.run('UPDATE videos SET nombre = ?, url = ?, categoria_id = ? WHERE _id = ?', [nombre, url, categoria, id], function (err) {
         if (err) {
             console.log("Error al modificar video:", err);
-            return res.json({ errormsg: "Error al modificar video:" + err } )
+            return res.json({ errormsg: "Error al modificar video:" + err })
         } else {
             console.log("Video modificado correctamente");
-            return res.json({ msg: "Video modificado correctamente" } )
+            return res.json({ msg: "Video modificado correctamente" })
         }
     });
 }
@@ -113,13 +113,13 @@ function processModificarUsuario(req, res, db) {
     var password = req.body.password;
     var id = req.body.id;
 
-    db.run('UPDATE users SET nombre = ?, correo = ?, rol = ?, password= ? WHERE uid = ?', [nombre, correo, rol, password,id], function (err) {
+    db.run('UPDATE users SET nombre = ?, correo = ?, rol = ?, password= ? WHERE uid = ?', [nombre, correo, rol, password, id], function (err) {
         if (err) {
             console.log("Error al modificar usuario:", err);
-            return res.json({ errormsg: "Error al modificar usuario:" + err } )
+            return res.json({ errormsg: "Error al modificar usuario:" + err })
         } else {
             console.log("Usuario modificado correctamente");
-            return res.json({ msg: "Usuario modificado correctamente" } )
+            return res.json({ msg: "Usuario modificado correctamente" })
         }
     });
 }
@@ -127,58 +127,58 @@ function processModificarCategorias(req, res, db) {
     var nombre = req.body.nombre;
     var id = req.body.id;
 
-    db.run('UPDATE categorias SET nombre = ? WHERE _id = ?', [nombre,id], function (err) {
+    db.run('UPDATE categorias SET nombre = ? WHERE _id = ?', [nombre, id], function (err) {
         if (err) {
             console.log("Error al modificar categoria:", err);
-            return res.json({ errormsg: "Error al modificar categoria:" + err } )
+            return res.json({ errormsg: "Error al modificar categoria:" + err })
         } else {
             console.log("Categoria modificada correctamente");
-            return res.json({ msg: "Categoria modificada correctamente" } )
+            return res.json({ msg: "Categoria modificada correctamente" })
         }
     });
 }
 
-function processEliminarUsuario(req, res, db){
-   
-        var id = req.query.id;
-    
-        db.run("DELETE FROM users WHERE uid = ?", id, function (err) {
-            if (err) {
-                console.log("Error al eliminar usuario:", err);
-                return res.json({ errormsg: "Error al eliminar usuario:" + err } )
-            } else {
-                console.log("Usuario eliminado correctamente");
-                return res.json({ msg: "Usuario eliminado correctamente"} )
-            }
-        });
+function processEliminarUsuario(req, res, db) {
+
+    var id = req.query.id;
+
+    db.run("DELETE FROM users WHERE uid = ?", id, function (err) {
+        if (err) {
+            console.log("Error al eliminar usuario:", err);
+            return res.json({ errormsg: "Error al eliminar usuario:" + err })
+        } else {
+            console.log("Usuario eliminado correctamente");
+            return res.json({ msg: "Usuario eliminado correctamente" })
+        }
+    });
 }
 
-function processEliminarVideo(req, res, db){
-   
+function processEliminarVideo(req, res, db) {
+
     var id = req.query.id;
 
     db.run("DELETE FROM videos WHERE _id = ?", id, function (err) {
         if (err) {
             console.log("Error al eliminar video:", err);
-            return res.json({ errormsg: "Error al eliminar video:" + err } )
+            return res.json({ errormsg: "Error al eliminar video:" + err })
         } else {
             console.log("Video eliminado correctamente");
-            return res.json({ msg: "Video eliminado correctamente"} )
+            return res.json({ msg: "Video eliminado correctamente" })
         }
     });
 }
 
-function processEliminarCategoria(req, res, db){
-   
+function processEliminarCategoria(req, res, db) {
+
     var id = req.query.id;
 
     db.run("DELETE FROM categorias WHERE _id = ?", id, function (err) {
         if (err) {
             console.log("Error al eliminar categoria:", err);
-            return res.json({ errormsg: "Error al eliminar categoria:" + err } )
+            return res.json({ errormsg: "Error al eliminar categoria:" + err })
         } else {
             console.log("Categoria eliminada correctamente");
-            return res.json({ msg: "Categoria eliminada correctamente"} )
+            return res.json({ msg: "Categoria eliminada correctamente" })
         }
     });
 }
@@ -258,6 +258,80 @@ function processListarCategorias(req, res, db) {
         console.log(data);
         console.log(desde + " " + limite);
         res.json(data);
+    });
+}
+function processCategoria(req, res, db) {
+
+    var id = req.params.id;
+
+    db.get('SELECT _id, nombre FROM categorias WHERE _id= ?', id, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ errormsg: 'Database query error' });
+        }
+        else if (rows) {
+            console.log(id)
+            var data = {
+                _id: rows._id,
+                nombre: rows.nombre
+            };
+            console.log(data);
+            res.json(data);
+        } else {
+            res.status(404).json({ error: 'Categoría no encontrada' });
+
+        }
+    });
+}
+
+function processUsuario(req, res, db) {
+
+    var id = req.params.id;
+
+    db.get('SELECT uid, nombre,correo,rol FROM users WHERE uid= ?', id, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ errormsg: 'Database query error' });
+        }
+        else if (rows) {
+            console.log(id)
+            var data = {
+                uid: rows.uid,
+                nombre: rows.nombre,
+                correo: rows.correo,
+                rol: rows.rol
+            };
+            console.log(data);
+            res.json(data);
+        } else {
+            res.status(404).json({ error: 'Usuario no encontrado' });
+
+        }
+    });
+}
+function processVideos(req, res, db) {
+
+    var id = req.params.id;
+
+    db.get('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,videos.categoria_id,categorias.nombre AS nombreCategoria FROM videos INNER JOIN categorias ON videos.categoria_id = categorias._id WHERE videos._id= ?', id, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ errormsg: 'Database query error: ' + err });
+        }
+        else if (rows) {
+            console.log(id)
+            var data = {
+                _id: rows._id,
+                nombre: rows.nombreVideo,
+                url: rows.url,
+                categoria: {
+                    _id: rows.categoria_id,
+                    nombre: rows.nombreCategoria
+                }
+            }
+            console.log(data);
+            res.json(data);
+        } else {
+            res.status(404).json({ error: 'Video no encontrado' });
+
+        }
     });
 }
 
@@ -412,7 +486,7 @@ router.put('/usuarios', (req, res) => {
     if (!req.body.id) {
         res.json({ errormsg: 'Peticion mal formada' });
     } else {
-        processModificarUsuario(req,res,db);
+        processModificarUsuario(req, res, db);
     }
 });
 
@@ -420,7 +494,7 @@ router.put('/categorias', (req, res) => {
     if (!req.body.id) {
         res.json({ errormsg: 'Peticion mal formada' });
     } else {
-        processModificarCategorias(req,res,db);
+        processModificarCategorias(req, res, db);
     }
 });
 
@@ -428,7 +502,7 @@ router.put('/videos', (req, res) => {
     if (!req.body.id) {
         res.json({ errormsg: 'Peticion mal formada' });
     } else {
-        processModificarVideo(req,res,db);
+        processModificarVideo(req, res, db);
     }
 });
 
@@ -457,6 +531,33 @@ router.delete('/categorias', (req, res) => {
     }
     else {
         processEliminarCategoria(req, res, db);
+    }
+});
+
+router.get('/categorias/:id', verifyToken, (req, res) => {
+    if (!req.params.id) {
+        res.json({ errormsg: 'Peticion mal formada' });
+    }
+    else {
+        processCategoria(req, res, db);
+    }
+});
+
+router.get('/usuarios/:id', verifyToken, (req, res) => {
+    if (!req.params.id) {
+        res.json({ errormsg: 'Peticion mal formada' });
+    }
+    else {
+        processUsuario(req, res, db);
+    }
+});
+
+router.get('/videos/:id', verifyToken, (req, res) => {
+    if (!req.params.id) {
+        res.json({ errormsg: 'Peticion mal formada' });
+    }
+    else {
+        processVideos(req, res, db);
     }
 });
 

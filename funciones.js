@@ -42,162 +42,162 @@
 //   }
 // }
 
-async function showForm(whichModal = 1, id_dada, nombre, url = "", id_categoria = "") {
+// async function showForm(whichModal = 1, id_dada, nombre, url = "", id_categoria = "") {
 
-  hideLoadingSpinner(); //A veces no se llega a esconder despues de haber aparecido antes
-  var elemento = event.currentTarget;
-  var clases = elemento.classList;
-  let dialog;
-  let out;
-  let titulo;
+//   hideLoadingSpinner(); //A veces no se llega a esconder despues de haber aparecido antes
+//   var elemento = event.currentTarget;
+//   var clases = elemento.classList;
+//   let dialog;
+//   let out;
+//   let titulo;
 
-  if (whichModal == 2) {
-    out = document.getElementById("second-modal-body");
-    titulo = document.getElementById("second-modal-title");
-    footer = document.getElementById("second-modal-footer");
-    dialog = document.getElementById("second-modal-dialog");
-  } else {
-    let contenedor = document.getElementById("contenedor-modal1");
-    out = document.getElementById("modal-body");
-    titulo = document.getElementById("modal-title");
-    footer = document.getElementById("modal-footer");
-    dialog = document.getElementById("modal-dialog");
-    contenedor.style.width = "100%";
+//   if (whichModal == 2) {
+//     out = document.getElementById("second-modal-body");
+//     titulo = document.getElementById("second-modal-title");
+//     footer = document.getElementById("second-modal-footer");
+//     dialog = document.getElementById("second-modal-dialog");
+//   } else {
+//     let contenedor = document.getElementById("contenedor-modal1");
+//     out = document.getElementById("modal-body");
+//     titulo = document.getElementById("modal-title");
+//     footer = document.getElementById("modal-footer");
+//     dialog = document.getElementById("modal-dialog");
+//     contenedor.style.width = "100%";
 
-  }
-  limpieza("", whichModal);
-  //Por problemas con el tamaño del modal, se les da este tamaño por defecto. 
-  //Se cambia si son de buscar algo, debido a la funcion de historial
-  dialog.className = "modal-dialog modal-sm modal-md modal-lg";
-  titulo.textContent = elemento.textContent;
+//   }
+//   limpieza("", whichModal);
+//   //Por problemas con el tamaño del modal, se les da este tamaño por defecto. 
+//   //Se cambia si son de buscar algo, debido a la funcion de historial
+//   dialog.className = "modal-dialog modal-sm modal-md modal-lg";
+//   titulo.textContent = elemento.textContent;
 
-  let formulario = document.createElement("form");
-  formulario.classList.add("form-group", "m-auto");
+//   let formulario = document.createElement("form");
+//   formulario.classList.add("form-group", "m-auto");
 
-  formulario.addEventListener("submit", function (event) {
-    event.preventDefault();
-    switch (true) {
-      case clases.contains("buscarCategoria"):
-        dialog.className = "modal-dialog modal-md modal-lg modal-xl";
-        var id = document.getElementById('id').value;
-        buscar("categorias", id);
-        break;
-      case clases.contains("eliminarCategoria"):
-        if (id_dada) { var id = id_dada } else {
-          var id = document.getElementById('id').value;
-        }
-        eliminar("categorias", id);
-        break;
-      case clases.contains('crearCategoria'):
-        var nombre = document.getElementById('Nombre').value;
-        crear("categorias", nombre);
-        break;
-      case clases.contains("modificarCategoria"):
-        if (id_dada) { var id = id_dada } else {
-          var id = document.getElementById('id').value;
-        }
-        var nombre = document.getElementById('Nombre').value;
-        modificar("categorias", id, nombre);
-        break;
+//   formulario.addEventListener("submit", function (event) {
+//     event.preventDefault();
+//     switch (true) {
+//       case clases.contains("buscarCategoria"):
+//         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+//         var id = document.getElementById('id').value;
+//         buscar("categorias", id);
+//         break;
+//       case clases.contains("eliminarCategoria"):
+//         if (id_dada) { var id = id_dada } else {
+//           var id = document.getElementById('id').value;
+//         }
+//         eliminar("categorias", id);
+//         break;
+//       case clases.contains('crearCategoria'):
+//         var nombre = document.getElementById('Nombre').value;
+//         crear("categorias", nombre);
+//         break;
+//       case clases.contains("modificarCategoria"):
+//         if (id_dada) { var id = id_dada } else {
+//           var id = document.getElementById('id').value;
+//         }
+//         var nombre = document.getElementById('Nombre').value;
+//         modificar("categorias", id, nombre);
+//         break;
 
-      case clases.contains("buscarVideo"):
-        dialog.className = "modal-dialog modal-md modal-lg modal-xl";
-        var id = document.getElementById('id').value;
-        buscar("videos", id);
-        break;
-      case clases.contains("eliminarVideo"):
-        if (id_dada) {
-          var id = id_dada;
-        } else {
-          var id = document.getElementById('id').value;
-        }
-        eliminar("videos", id);
-        break;
-      case clases.contains("crearVideo"):
-        var nombre = document.getElementById('Nombre').value;
-        var url = document.getElementById("url").value;
-        var categoria = document.getElementById("id_categoria").value
-        crear("videos", nombre, "", "", url, categoria);
-        break;
-      case clases.contains("modificarVideo"):
-        var nombre = document.getElementById('Nombre').value;
-        var url = document.getElementById("url").value;
-        var categoria = document.getElementById("id_categoria").value
-        if (id_dada) {
-          var id = id_dada;
-        } else {
-          var id = document.getElementById('id').value;
-        }
-        modificar("videos", id, nombre, "", categoria, url);
-        break;
-      case clases.contains("buscarUsuario"):
-        dialog.className = "modal-dialog modal-md modal-lg modal-xl";
-        var uid = document.getElementById('uid').value;
-        buscar("usuarios", uid);
-        break;
-      case clases.contains("eliminarUsuario"):
-        if (id_dada) { var uid = id_dada } else {
-          var uid = document.getElementById('uid').value;
-        }
-        eliminar("usuarios", uid);
-        break;
-      case clases.contains("crearUsuario"):
-        var nombre = document.getElementById('Nombre').value;
-        var correo = document.getElementById('Correo').value;
-        var password = document.getElementById('Contraseña').value;
-        if (password.length < 8) {
-          alert("La contraseña debe tener al menos 8 caracteres");
-        } else {
-          crear("usuarios", nombre, correo, password);
-        }
-        break;
-      case clases.contains("modificarUsuario"):
-        if (id_dada) { var uid = id_dada } else {
-          var uid = document.getElementById('uid').value;
-        }
-        var nombre = document.getElementById('Nombre').value;
-        var password = document.getElementById('Contraseña').value;
-        if (password.length < 8) {
-          alert("La contraseña debe tener al menos 8 caracteres");
-        } else {
-          modificar("usuarios", uid, nombre, password);
-        }
-        break;
-    }
-  })
+//       case clases.contains("buscarVideo"):
+//         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+//         var id = document.getElementById('id').value;
+//         buscar("videos", id);
+//         break;
+//       case clases.contains("eliminarVideo"):
+//         if (id_dada) {
+//           var id = id_dada;
+//         } else {
+//           var id = document.getElementById('id').value;
+//         }
+//         eliminar("videos", id);
+//         break;
+//       case clases.contains("crearVideo"):
+//         var nombre = document.getElementById('Nombre').value;
+//         var url = document.getElementById("url").value;
+//         var categoria = document.getElementById("id_categoria").value
+//         crear("videos", nombre, "", "", url, categoria);
+//         break;
+//       case clases.contains("modificarVideo"):
+//         var nombre = document.getElementById('Nombre').value;
+//         var url = document.getElementById("url").value;
+//         var categoria = document.getElementById("id_categoria").value
+//         if (id_dada) {
+//           var id = id_dada;
+//         } else {
+//           var id = document.getElementById('id').value;
+//         }
+//         modificar("videos", id, nombre, "", categoria, url);
+//         break;
+//       case clases.contains("buscarUsuario"):
+//         dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+//         var uid = document.getElementById('uid').value;
+//         buscar("usuarios", uid);
+//         break;
+//       case clases.contains("eliminarUsuario"):
+//         if (id_dada) { var uid = id_dada } else {
+//           var uid = document.getElementById('uid').value;
+//         }
+//         eliminar("usuarios", uid);
+//         break;
+//       case clases.contains("crearUsuario"):
+//         var nombre = document.getElementById('Nombre').value;
+//         var correo = document.getElementById('Correo').value;
+//         var password = document.getElementById('Contraseña').value;
+//         if (password.length < 8) {
+//           alert("La contraseña debe tener al menos 8 caracteres");
+//         } else {
+//           crear("usuarios", nombre, correo, password);
+//         }
+//         break;
+//       case clases.contains("modificarUsuario"):
+//         if (id_dada) { var uid = id_dada } else {
+//           var uid = document.getElementById('uid').value;
+//         }
+//         var nombre = document.getElementById('Nombre').value;
+//         var password = document.getElementById('Contraseña').value;
+//         if (password.length < 8) {
+//           alert("La contraseña debe tener al menos 8 caracteres");
+//         } else {
+//           modificar("usuarios", uid, nombre, password);
+//         }
+//         break;
+//     }
+//   })
 
-  if (!id_dada) { //Elimina de los formularios el input de la id de eliminar y modificar si el formulario es de los botones de una card
-    if (clases.contains("buscarUsuario") || clases.contains("eliminarUsuario") || clases.contains("modificarUsuario")) {
-      formulario.append(crearInput("uid", "text", true));
-    }
-    if (clases.contains("buscarVideo") || clases.contains("eliminarVideo") || clases.contains("modificarVideo") || clases.contains("buscarCategoria") || clases.contains("eliminarCategoria") || clases.contains("modificarCategoria")) {
-      formulario.append(crearInput("id", "text", true));
-    }
-  }
-  if (id_dada) {
-    if (clases.contains("eliminarVideo") || clases.contains("eliminarUsuario") || clases.contains("eliminarCategoria")) {
-      formulario.append("Vas a eliminar a este objeto. Si estas seguro de ello, pulsa confirmar");
-    }
-  }
-  if (clases.contains("crearUsuario") || clases.contains("modificarUsuario") || clases.contains("crearVideo") || clases.contains("modificarVideo") || clases.contains("crearCategoria") || clases.contains("modificarCategoria")) {
-    formulario.append(crearInput("Nombre", "text", true, nombre));
-  }
-  if (clases.contains("crearUsuario")) {
-    formulario.append(crearInput("Correo", "email", true));
-  }
-  if (clases.contains("crearVideo") || clases.contains("modificarVideo")) {
-    formulario.append(crearInput("url", "url", true, url));
-    formulario.append(await crearDesplegable("id_categoria", true, id_categoria));
-  }
+//   if (!id_dada) { //Elimina de los formularios el input de la id de eliminar y modificar si el formulario es de los botones de una card
+//     if (clases.contains("buscarUsuario") || clases.contains("eliminarUsuario") || clases.contains("modificarUsuario")) {
+//       formulario.append(crearInput("uid", "text", true));
+//     }
+//     if (clases.contains("buscarVideo") || clases.contains("eliminarVideo") || clases.contains("modificarVideo") || clases.contains("buscarCategoria") || clases.contains("eliminarCategoria") || clases.contains("modificarCategoria")) {
+//       formulario.append(crearInput("id", "text", true));
+//     }
+//   }
+//   if (id_dada) {
+//     if (clases.contains("eliminarVideo") || clases.contains("eliminarUsuario") || clases.contains("eliminarCategoria")) {
+//       formulario.append("Vas a eliminar a este objeto. Si estas seguro de ello, pulsa confirmar");
+//     }
+//   }
+//   if (clases.contains("crearUsuario") || clases.contains("modificarUsuario") || clases.contains("crearVideo") || clases.contains("modificarVideo") || clases.contains("crearCategoria") || clases.contains("modificarCategoria")) {
+//     formulario.append(crearInput("Nombre", "text", true, nombre));
+//   }
+//   if (clases.contains("crearUsuario")) {
+//     formulario.append(crearInput("Correo", "email", true));
+//   }
+//   if (clases.contains("crearVideo") || clases.contains("modificarVideo")) {
+//     formulario.append(crearInput("url", "url", true, url));
+//     formulario.append(await crearDesplegable("id_categoria", true, id_categoria));
+//   }
 
-  if (clases.contains("crearUsuario") || clases.contains("modificarUsuario")) {
-    formulario.append(crearInput("Contraseña", "password", true));
-  }
-  var botonEnviar = crearBoton("Confirmar", "", "", "btn-primary w-100 py-2 my-3");
-  botonEnviar.type = 'submit';
-  formulario.appendChild(botonEnviar);
-  out.append(formulario);
-}
+//   if (clases.contains("crearUsuario") || clases.contains("modificarUsuario")) {
+//     formulario.append(crearInput("Contraseña", "password", true));
+//   }
+//   var botonEnviar = crearBoton("Confirmar", "", "", "btn-primary w-100 py-2 my-3");
+//   botonEnviar.type = 'submit';
+//   formulario.appendChild(botonEnviar);
+//   out.append(formulario);
+// }
 
 function showLoadingSpinner() {
   var spinner = document.getElementById("spinner");
@@ -209,57 +209,57 @@ function hideLoadingSpinner() {
   spinner.style.display = "none";
 }
 
-function crearCard(objeto, tipo, whichModal) {
-  let card;
-  let columna = crearDiv("", "col mb-2");
-  let cardbody = crearDiv("", "card-body");
-  let nombre = crearTitulo(objeto.nombre, "h4", "card-title");
-  let botones = crearDiv("", "", " display: flex;align-items: center;justify-content: center");
+// function crearCard(objeto, tipo, whichModal) {
+//   let card;
+//   let columna = crearDiv("", "col mb-2");
+//   let cardbody = crearDiv("", "card-body");
+//   let nombre = crearTitulo(objeto.nombre, "h4", "card-title");
+//   let botones = crearDiv("", "", " display: flex;align-items: center;justify-content: center");
 
-  if (tipo === "usuarios") {
-    card = crearDiv("", "card h-100 md-2 my-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
-    card.id = tipo + objeto.uid;
-    let correo = crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
-    let uid = crearTitulo("UID: " + objeto.uid, "h6", "card-text");
-    let estado = crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
-    let modificar = crearBoton("Modificar usuario", function () { showForm(whichModal, objeto.uid, objeto.nombre); }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuario");
-    let eliminar = crearBoton("Eliminar usuario", function () { showForm(whichModal, objeto.uid) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario");
-    if (objeto.estado == false) {
-      eliminar.disabled = true;
-      modificar.disabled = true;
-    }
-    botones.append(modificar, eliminar);
-    cardbody.append(nombre, correo, uid, estado, botones);
-    card.append(cardbody);
-  } else if (tipo === "videos") {
-    card = crearDiv("", "card h-100 md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
-    let id = crearTitulo("ID: " + objeto._id, "h6");
-    let vid = crearIframe(objeto);
-    card.id = tipo + objeto._id;
-    cardbody.append(nombre);
-    if (sessionStorage.getItem("rol") == "ADMIN_ROLE") {
-      let categoria = crearTitulo(objeto.categoria.nombre, "h5", "card-card-subtitle mb-2 text-muted");
-      let ctg_id = crearTitulo("ID de la categoría: " + objeto.categoria._id, "h6", "card-text");
-      let modificar = crearBoton("Modificar video", function () { showForm(whichModal, objeto._id, objeto.nombre, objeto.url, objeto.categoria._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarVideo");
-      let eliminar = crearBoton("Eliminar video", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarVideo");
-      botones.append(modificar, eliminar);
-      botones.style = "  display: flex;align-items: center;justify-content: center";
-      cardbody.append(categoria, id, ctg_id, botones);
-    }
-    card.append(vid, cardbody);
-  } else {
-    card = crearDiv("", "card md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
-    let id = crearTitulo("ID: " + objeto._id, "h6", "card-card-subtitle mb-2 text-muted");
-    card.id = tipo + objeto._id;
-    let modificar = crearBoton("Modificar categoría", function () { showForm(whichModal, objeto._id, objeto.nombre) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategoria");
-    let eliminar = crearBoton("Eliminar categoría", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria");
-    botones.append(modificar, eliminar);
-    cardbody.append(nombre, id, botones);
-    card.append(cardbody);
-  }
-  columna.append(card);
-  return columna;
-}
+//   if (tipo === "usuarios") {
+//     card = crearDiv("", "card h-100 md-2 my-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+//     card.id = tipo + objeto.uid;
+//     let correo = crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
+//     let uid = crearTitulo("UID: " + objeto.uid, "h6", "card-text");
+//     let estado = crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
+//     let modificar = crearBoton("Modificar usuario", function () { showForm(whichModal, objeto.uid, objeto.nombre); }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuario");
+//     let eliminar = crearBoton("Eliminar usuario", function () { showForm(whichModal, objeto.uid) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario");
+//     if (objeto.estado == false) {
+//       eliminar.disabled = true;
+//       modificar.disabled = true;
+//     }
+//     botones.append(modificar, eliminar);
+//     cardbody.append(nombre, correo, uid, estado, botones);
+//     card.append(cardbody);
+//   } else if (tipo === "videos") {
+//     card = crearDiv("", "card h-100 md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+//     let id = crearTitulo("ID: " + objeto._id, "h6");
+//     let vid = crearIframe(objeto);
+//     card.id = tipo + objeto._id;
+//     cardbody.append(nombre);
+//     if (sessionStorage.getItem("rol") == "ADMIN_ROLE") {
+//       let categoria = crearTitulo(objeto.categoria.nombre, "h5", "card-card-subtitle mb-2 text-muted");
+//       let ctg_id = crearTitulo("ID de la categoría: " + objeto.categoria._id, "h6", "card-text");
+//       let modificar = crearBoton("Modificar video", function () { showForm(whichModal, objeto._id, objeto.nombre, objeto.url, objeto.categoria._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarVideo");
+//       let eliminar = crearBoton("Eliminar video", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarVideo");
+//       botones.append(modificar, eliminar);
+//       botones.style = "  display: flex;align-items: center;justify-content: center";
+//       cardbody.append(categoria, id, ctg_id, botones);
+//     }
+//     card.append(vid, cardbody);
+//   } else {
+//     card = crearDiv("", "card md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
+//     let id = crearTitulo("ID: " + objeto._id, "h6", "card-card-subtitle mb-2 text-muted");
+//     card.id = tipo + objeto._id;
+//     let modificar = crearBoton("Modificar categoría", function () { showForm(whichModal, objeto._id, objeto.nombre) }, "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategoria");
+//     let eliminar = crearBoton("Eliminar categoría", function () { showForm(whichModal, objeto._id) }, "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria");
+//     botones.append(modificar, eliminar);
+//     cardbody.append(nombre, id, botones);
+//     card.append(cardbody);
+//   }
+//   columna.append(card);
+//   return columna;
+// }
 
 function crearIframe(video) {
   let vid = document.createElement("iframe");
