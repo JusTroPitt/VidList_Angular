@@ -68,12 +68,21 @@
 
     <main>
         <div class="bg-body-primary">
-            <div id="principal"></div> 
+            <div id="principal"></div>
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
-                <div id="categorias">
+                <div id="categorias" ng-repeat="categoria in categorias">
+                    <div id="categoria{{categoria._id}}" class="mx-0 my-2 p-2 rounded bg-body-tertiary shadow-lg">
+                        <h3>{{ categoria.nombre }}</h3>
+                        <div id="contenido{{categoria._id}}" ng-init="loadVideos(categoria._id)"></div>
+                        <ul id="paginacion{{categoria._id}}"
+                            class="pagination col-md-12 justify-content-end d-flex mt-3 mb-0"></ul>
+                    </div>
                 </div>
             </div>
+
+        </div>
+        </div>
         </div>
 
         <div class="modal fade" id="1ContenedorModal" tabindex="-1">
@@ -86,7 +95,7 @@
                     </div>
 
                     <div id="contenedor-modal1" class="modal-body pb-5">
-                        <div id="spinner" class="spinner-border"></div>
+                        <div ng-show="spinner" class="spinner-border"></div>
                         <div id="modal-body"></div>
                         <div id="historialBusqueda"
                             class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
@@ -121,14 +130,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <div ng-repeat='categoria in categorias' class="principal">
-
-            {{}}
-             <span>{{categoria._id}}</span>
-            <td><a ng-href="detail.html?id={{message.id}}">{{message.subject}}</td>
-            <span>{{categoria.nombre}}</span> 
-        <div> -->
     </main>
 
     <footer class="d-flex flex-wrap justify-content-between py-3 my-4 border-top">

@@ -199,16 +199,6 @@
 //   out.append(formulario);
 // }
 
-function showLoadingSpinner() {
-  var spinner = document.getElementById("spinner");
-  spinner.style.display = "block";
-}
-
-function hideLoadingSpinner() {
-  var spinner = document.getElementById("spinner");
-  spinner.style.display = "none";
-}
-
 // function crearCard(objeto, tipo, whichModal) {
 //   let card;
 //   let columna = crearDiv("", "col mb-2");
@@ -261,44 +251,44 @@ function hideLoadingSpinner() {
 //   return columna;
 // }
 
-function crearIframe(video) {
-  let vid = document.createElement("iframe");
-  vid.src = video.url;
-  vid.height = "100%";
-  vid.width = "100%";
-  vid.title = video.nombre;
-  vid.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-  vid.allowFullscreen = true;
-  return vid;
-}
+// function crearIframe(video) {
+//   let vid = document.createElement("iframe");
+//   vid.src = video.url;
+//   vid.height = "100%";
+//   vid.width = "100%";
+//   vid.title = video.nombre;
+//   vid.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+//   vid.allowFullscreen = true;
+//   return vid;
+// }
 
-function crearDiv(id, clase, style) {
-  let div = document.createElement("div");
-  if (id) { div.id = id; }
-  if (clase) { div.classList = clase; }
-  if (style) { div.style = style; }
-  return div;
-}
+// function crearDiv(id, clase, style) {
+//   let div = document.createElement("div");
+//   if (id) { div.id = id; }
+//   if (clase) { div.classList = clase; }
+//   if (style) { div.style = style; }
+//   return div;
+// }
 
-function crearTitulo(texto, forma = "h3", clase) {
-  const label = document.createElement(forma);
-  label.textContent = texto;
-  if (clase) { label.className = clase; }
-  return label;
-}
+// function crearTitulo(texto, forma = "h3", clase) {
+//   const label = document.createElement(forma);
+//   label.textContent = texto;
+//   if (clase) { label.className = clase; }
+//   return label;
+// }
 
-function crearBoton(texto, listener, target, clases, accion = "") {
-  const boton = document.createElement("button");
-  boton.textContent = texto;
-  boton.classList = "btn shadow " + clases + " " + accion;
-  if (listener) { boton.addEventListener("click", listener); }
-  if (target) {
-    boton.setAttribute("data-bs-toggle", "modal");
-    boton.setAttribute("data-bs-target", target);
-  }
+// function crearBoton(texto, listener, target, clases, accion = "") {
+//   const boton = document.createElement("button");
+//   boton.textContent = texto;
+//   boton.classList = "btn shadow " + clases + " " + accion;
+//   if (listener) { boton.addEventListener("click", listener); }
+//   if (target) {
+//     boton.setAttribute("data-bs-toggle", "modal");
+//     boton.setAttribute("data-bs-target", target);
+//   }
 
-  return boton;
-}
+//   return boton;
+// }
 
 // function crearPaginacion(totalPaginas, numeroPagina, tipo, id_categoria) {
 //   //En funcion de si la paginacion es para dentro un modal o en funcion de las categorias de getCategorias, hace una cosa u otra
@@ -325,49 +315,49 @@ function crearBoton(texto, listener, target, clases, accion = "") {
 //   }
 // }
 
-function limpieza(id, modal) {
-  //Dependiendo de si el formulario se muestra en un modal u otro, limpiara solo su contenido. 
-  //Así, en caso de usar el modal 2 se puede volver al 1 sin problemas 
-  if (modal == 2) {
-    let out = document.getElementById("second-modal-body");
-    out.innerHTML = "";
-    let titulo = document.getElementById("second-modal-title");
-    titulo.innerHTML = "";
-  } else if (modal == 1) {
-    let modalBody = document.getElementById("modal-body");
-    modalBody.innerHTML = "";
-    let historialBusqueda = document.getElementById("historialBusqueda");
-    historialBusqueda.innerHTML = "";
-    let titulo = document.getElementById("modal-title");
-    titulo.innerHTML = "";
-    let paginador = document.getElementById("pagination");
-    paginador.innerHTML = "";
-  } else if (id) {
-    let paginacion = document.getElementById("paginacion" + id);
-    paginacion.innerHTML = "";
-    let contenido = document.getElementById("contenido" + id);
-    contenido.innerHTML = "";
-  }
+// function limpieza(id, modal) {
+//   //Dependiendo de si el formulario se muestra en un modal u otro, limpiara solo su contenido. 
+//   //Así, en caso de usar el modal 2 se puede volver al 1 sin problemas 
+//   if (modal == 2) {
+//     let out = document.getElementById("second-modal-body");
+//     out.innerHTML = "";
+//     let titulo = document.getElementById("second-modal-title");
+//     titulo.innerHTML = "";
+//   } else if (modal == 1) {
+//     let modalBody = document.getElementById("modal-body");
+//     modalBody.innerHTML = "";
+//     let historialBusqueda = document.getElementById("historialBusqueda");
+//     historialBusqueda.innerHTML = "";
+//     let titulo = document.getElementById("modal-title");
+//     titulo.innerHTML = "";
+//     let paginador = document.getElementById("pagination");
+//     paginador.innerHTML = "";
+//   } else if (id) {
+//     let paginacion = document.getElementById("paginacion" + id);
+//     paginacion.innerHTML = "";
+//     let contenido = document.getElementById("contenido" + id);
+//     contenido.innerHTML = "";
+//   }
 
-}
+// }
 
 
-function crearInput(nombre, type, required = false, value) {
-  var container = crearDiv("container" + nombre, "form-floating")
-  var input = document.createElement('input');
-  input.type = type;
-  input.name = nombre;
-  input.placeholder = nombre;
-  input.classList.add("form-control");
-  input.id = nombre;
-  if (value) { input.value = value; }
-  if (required === true) { input.required = true; }
-  var label = document.createElement('label');
-  label.textContent = nombre;
-  label.setAttribute('for', nombre);
-  container.append(input, label);
-  return container;
-}
+// function crearInput(nombre, type, required = false, value) {
+//   var container = crearDiv("container" + nombre, "form-floating")
+//   var input = document.createElement('input');
+//   input.type = type;
+//   input.name = nombre;
+//   input.placeholder = nombre;
+//   input.classList.add("form-control");
+//   input.id = nombre;
+//   if (value) { input.value = value; }
+//   if (required === true) { input.required = true; }
+//   var label = document.createElement('label');
+//   label.textContent = nombre;
+//   label.setAttribute('for', nombre);
+//   container.append(input, label);
+//   return container;
+// }
 
 function comprobar(result, errores) {
   let mensaje;
