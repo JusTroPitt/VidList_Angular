@@ -80,9 +80,6 @@
                     </div>
                 </div>
             </div>
-
-        </div>
-        </div>
         </div>
 
         <div class="modal fade" id="1ContenedorModal" tabindex="-1">
@@ -97,9 +94,6 @@
                     <div id="contenedor-modal1" class="modal-body pb-5">
                         <div ng-show="spinner" class="spinner-border"></div>
                         <div id="modal-body"></div>
-                        <div id="historialBusqueda"
-                            class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
-                        </div>
                     </div>
                     <div id="modal-footer" class="modal-footer d-flex">
                         <div class="col-md-4 justify-content-center d-flex">
@@ -119,13 +113,75 @@
             <div id="second-modal-dialog" class="modal-dialog modal-sm modal-md">
                 <div class="modal-content">
                     <div class="modal-header col-md-4 justify-content-center d-flex">
-                        <h5 class="modal-title" id="second-modal-title"></h5>
+                        <h5 class="modal-title" id="second-modal-title"> {{form.titulo}}</h5>
                     </div>
                     <div id="second-modal-body" class="modal-body">
+
+                        <form id="formulario" name="formulario" class="form-group m-auto"
+                            ng-submit="submit(formulario)">
+                            <div class="form-floating">
+                                <div class="form-floating"
+                                    ng-if="!id_dada && ( isBuscarUsuario || isEliminarUsuario || isModificarUsuario)">
+                                    <input class="form-control" placeholder="" type="text" required="true" name="uid"
+                                        id="uid" ng-model="form.uid"
+                                        ng-if="isBuscarUsuario || isEliminarUsuario || isModificarUsuario">
+                                    <label for="uid">uid</label>
+                                </div>
+                                <div class="form-floating"
+                                    ng-if="!id_dadas && (isBuscarCategoria || isEliminarCategoria || isModificarCategoria || isBuscarVideo || isEliminarVideo || isModificarVideo)">
+                                    <input class="form-control" placeholder="" type="text" required="true" name="id"
+                                        id="id" ng-model="form.id"
+                                        ng-if="isBuscarCategoria || isEliminarCategoria || isModificarCategoria || isBuscarVideo || isEliminarVideo || isModificarVideo">
+                                    <label for="id">id</label>
+                                </div>
+                                <div class="form-floating"
+                                    ng-if="id_dadas && (isEliminarVideo || isEliminarUsuario || isEliminarCategoria)">
+                                    <h5>Vas a
+                                        eliminar a
+                                        este objeto. Si estas seguro de ello, pulsa confirmar</h5>
+                                </div>
+                                <div class="form-floating"
+                                    ng-if="isCrearCategoria || isCrearUsuario || isCrearVideo || isModificarCategoria || isModificarVideo || isModificarUsuario">
+                                    <input type="text" class="form-control" placeholder="" required="true" name="Nombre"
+                                        id="Nombre" ng-model="form.Nombre">
+                                    <label for="Nombre">Nombre</label>
+                                </div>
+                                <div class="form-floating" ng-if="isCrearUsuario || isModificarUsuario">
+                                    <input type="email" class="form-control" placeholder="" required="true"
+                                        name="Correo" id="Correo" ng-model="form.Correo">
+                                    <label for="Correo">Correo</label>
+                                </div>
+                                <div class="form-floating" ng-if="isCrearVideo || isModificarVideo">
+                                    <input type="url" class="form-control" placeholder="" required="true" name="url"
+                                        id="url" ng-model="form.url">
+                                    <label for="url">url</label>
+                                </div>
+                                <div class="form-floating" ng-if="isCrearVideo || isModificarVideo">
+                                    <select id="" class="form-select form-control my-0" ng-model="form.id_categoria"
+                                        ng-options="categoria._id as categoria.nombre for categoria in categorias">
+                                        <option class="dropdown-item" value="">Seleccione una categoría</option>
+                                    </select>
+                                    <label for="Categorias" class="my-0">Categorias</label>
+                                </div>
+                                <div class="form-floating" ng-if="isCrearUsuario || isModificarUsuario">
+                                    <input type="password" class="form-control" placeholder="" required="true"
+                                        name="Password" id="Password" ng-model="form.Password">
+                                    <label for="Password">Contraseña</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2 my-3"> Confirmar
+                            </button>
+                        </form>
+                        <div id="historialBusqueda"
+                            class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
+                        </div>
+
                     </div>
                     <div id="second-modal-footer" class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
-                            data-bs-target="#1ContenedorModal" data-bs-dismiss="modal">Cerrar</button>
+                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target=""
+                            data-bs-dismiss="modal">Cerrar</button>
+                        <!-- <button class="btn btn-secondary" data-bs-toggle="modal"
+                            data-bs-target="#1ContenedorModal" data-bs-dismiss="modal">Cerrar</button> -->
                     </div>
                 </div>
             </div>

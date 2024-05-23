@@ -129,9 +129,10 @@ function processModificarCategorias(req, res, db) {
 
     db.run('UPDATE categorias SET nombre = ? WHERE _id = ?', [nombre, id], function (err) {
         if (err) {
-            console.log("Error al modificar categoria:", err);
+          //  console.log("Error al modificar categoria:", err);
             return res.json({ errormsg: "Error al modificar categoria:" + err })
         } else {
+            console.log(id,nombre)
             console.log("Categoria modificada correctamente");
             return res.json({ msg: "Categoria modificada correctamente" })
         }
