@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('VidList', [])
+angular.module('VidList', ['ngSanitize'])
     .factory('VidListService', ($http, ServiciosSecundarios) => {
         var VidListAPI = {};
         var token = null;
@@ -158,12 +158,12 @@ angular.module('VidList', [])
 
             var compiledElement = $compile(contenido)(scope);
             for (let numero = 0; numero < compiledElement.length; numero++) {
-                salida.appendChild(compiledElement[numero]);
+                salida.append(compiledElement[numero]);
             }
         }
         ServSecAPI.limpieza = function (id, modal) {
             var elementosALimpiar = {
-                1: ["modal-body", "historialBusqueda", "modal-title", "pagination"],
+                1: ["historialBusqueda", "modal-title", "pagination"],
                 2: ["second-modal-body", "second-modal-title"],
             };
 
@@ -233,19 +233,19 @@ angular.module('VidList', [])
             let nombre = ServSecAPI.crearTitulo(objeto.nombre, "h4", "card-title");
             let botones = ServSecAPI.crearDiv("", "", " display: flex;align-items: center;justify-content: center");
 
-            if (tipo === "usuarios") {
+            if (tipo == "usuarios") {
                 card = ServSecAPI.crearDiv("", "card h-100 md-2 my-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
                 card.id = tipo + objeto.uid;
                 let correo = ServSecAPI.crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
                 let uid = ServSecAPI.crearTitulo("UID: " + objeto.uid, "h6", "card-text");
                 let rol = ServSecAPI.crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
-                let modificar = ServSecAPI.crearBoton("Modificar usuario", "showForm(" + whichModal + "," + objeto.uid + ", '" + objeto.nombre + "')", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuario");
-                let eliminar = ServSecAPI.crearBoton("Eliminar usuario", "showForm(" + whichModal + "," + objeto.uid + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario");
+                let modificar = ServSecAPI.crearBoton("Modificar usuario", "showForm(" + whichModal + "," + objeto.uid + ", '" + objeto.nombre + "')", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarUsuarios");
+                let eliminar = ServSecAPI.crearBoton("Eliminar usuario", "showForm(" + whichModal + "," + objeto.uid + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarUsuarios");
 
                 botones.append(modificar, eliminar);
                 cardbody.append(nombre, correo, uid, rol, botones);
                 card.append(cardbody);
-            } else if (tipo === "videos") {
+            } else if (tipo == "videos") {
                 card = ServSecAPI.crearDiv("", "card h-100 md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
                 let id = ServSecAPI.crearTitulo("ID: " + objeto._id, "h6");
                 let vid = ServSecAPI.crearIframe(objeto);
@@ -254,8 +254,8 @@ angular.module('VidList', [])
                 if (sessionStorage.getItem("rol") == "ADMIN_ROLE") {
                     let categoria = ServSecAPI.crearTitulo(objeto.categoria.nombre, "h5", "card-card-subtitle mb-2 text-muted");
                     let ctg_id = ServSecAPI.crearTitulo("ID de la categoría: " + objeto.categoria._id, "h6", "card-text");
-                    let modificar = ServSecAPI.crearBoton("Modificar video", "showForm(" + whichModal + "," + objeto._id + ",'" + objeto.nombre + "','" + objeto.url + "'," + objeto.categoria._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarVideo");
-                    let eliminar = ServSecAPI.crearBoton("Eliminar video", "showForm(" + whichModal + "," + objeto._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarVideo");
+                    let modificar = ServSecAPI.crearBoton("Modificar video", "showForm(" + whichModal + "," + objeto._id + ",'" + objeto.nombre + "','" + objeto.url + "'," + objeto.categoria._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarVideos");
+                    let eliminar = ServSecAPI.crearBoton("Eliminar video", "showForm(" + whichModal + "," + objeto._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarVideos");
                     botones.append(modificar, eliminar);
                     botones.style = "  display: flex;align-items: center;justify-content: center";
                     cardbody.append(categoria, id, ctg_id, botones);
@@ -265,13 +265,14 @@ angular.module('VidList', [])
                 card = ServSecAPI.crearDiv("", "card md-2 mb-2 mt-2 mx-2 shadow", "width: auto;height:auto;overflow:hidden;");
                 let id = ServSecAPI.crearTitulo("ID: " + objeto._id, "h6", "card-card-subtitle mb-2 text-muted");
                 card.id = tipo + objeto._id;
-                let modificar = ServSecAPI.crearBoton("Modificar categoría", "showForm(" + whichModal + "," + objeto._id + ",'" + objeto.nombre + "')", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategoria");
-                let eliminar = ServSecAPI.crearBoton("Eliminar categoría", "showForm(" + whichModal + "," + objeto._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria");
+                let modificar = ServSecAPI.crearBoton("Modificar categoría", "showForm(" + whichModal + "," + objeto._id + ",'" + objeto.nombre + "')", "#" + whichModal + "ContenedorModal", "btn-outline-warning m-2", "modificarCategorias");
+                let eliminar = ServSecAPI.crearBoton("Eliminar categoría", "showForm(" + whichModal + "," + objeto._id + ")", "#" + whichModal + "ContenedorModal", "btn-outline-danger m-2", "eliminarCategorias");
                 botones.append(modificar, eliminar);
                 cardbody.append(nombre, id, botones);
                 card.append(cardbody);
             }
             columna.append(card);
+
             return columna;
         }
         ServSecAPI.crearBoton = function (texto, listener, target, clases, accion = "") {
@@ -291,6 +292,23 @@ angular.module('VidList', [])
         };
         return ServSecAPI;
     })
+
+    .directive('compileHtml', ['$compile', function ($compile) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                scope.$watch(
+                    function () {
+                        return scope.$eval(attrs.compileHtml);
+                    },
+                    function (value) {
+                        element.html(value);
+                        $compile(element.contents())(scope);
+                    }
+                );
+            }
+        };
+    }])
     .controller('LoginController', function ($scope, VidListService) {
         $scope.registered = false;
         $scope.user = "";
@@ -313,70 +331,29 @@ angular.module('VidList', [])
                 });
         };
     })
-    .controller('PrincipalController', function ($scope, $timeout, VidListService, ServiciosSecundarios) {
-        $scope.categorias = [];
+    .controller('PrincipalController', function ($scope, $sce, $timeout, VidListService, ServiciosSecundarios) {
+        $scope.categorias = {};
         $scope.nombreUsuario = sessionStorage.getItem("nombre");
         $scope.userRole = sessionStorage.getItem("rol");
         $scope.form = {};
-        $scope.id_dada= "";
+        $scope.id_dada = "";
+        $scope.seccionesPanel = ["usuarios", "categorias", "videos"];
+        $scope.tituloModal = "";
+        $scope.productos = [
+            { name: 'Producto 1', email: 'producto1@gmail.com', uid: 1, rol: 'ADMIN_ROLE' },
+            { name: 'Producto 2', email: 'producto2@gmail.com', uid: 2, rol: 'USER_ROLE' }
+        ];
         function init() {
             VidListService.busqueda("categorias")
                 .then(function (response) {
                     $scope.categorias = response.data.productos;
                     $scope.spinner = false;
-                    $scope.whichUserRole();
                 });
         }
-        $scope.whichUserRole = function () {
-            try {
-                if ($scope.userRole === "ADMIN_ROLE") {
-                    $scope.getPanel();
-                }
-            } catch (error) {
-                console.error(error);
-            }
+
+        $scope.crearCard = function (objeto, tipo, whichModal) {
+            return ServiciosSecundarios.crearCard(objeto, tipo, whichModal).outerHTML;
         };
-
-        $scope.getPanel = function () {
-            let todo = ServiciosSecundarios.crearDiv("panelCompleto");
-            let paneles = ServiciosSecundarios.crearTitulo("PANELES", "h2", "my-2 mx-1")
-            let usuarios = ServiciosSecundarios.crearDiv("", " shadow-lg rounded p-3 m-3 bg-body-tertiary");
-            let categorias = ServiciosSecundarios.crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary ");
-            let videos = ServiciosSecundarios.crearDiv("", "shadow-lg rounded p-3 m-3 bg-body-tertiary");
-
-            let out = document.getElementById("principal");
-
-            usuarios.append(
-                ServiciosSecundarios.crearTitulo("PANEL DE USUARIOS", "h3"),
-                ServiciosSecundarios.crearBoton("Lista de Usuarios", "getLista('usuarios')", "#1ContenedorModal", "btn-outline-primary m-2", "listaUsuarios"),
-                ServiciosSecundarios.crearBoton("Crear usuario", "showForm()", "#2ContenedorModal", "btn-outline-success m-2", "crearUsuario"),
-                ServiciosSecundarios.crearBoton("Modificar usuario", "showForm()", "#2ContenedorModal", "btn-outline-warning m-2", "modificarUsuario"),
-                ServiciosSecundarios.crearBoton("Eliminar usuario", "showForm()", "#2ContenedorModal", "btn-outline-danger m-2", "eliminarUsuario"),
-                ServiciosSecundarios.crearBoton("Buscar usuario por id", "showForm()", "#2ContenedorModal", "btn-outline-info m-2", "buscarUsuario")
-            );
-
-            categorias.append(
-                ServiciosSecundarios.crearTitulo("PANEL DE CATEGORÍAS", "h3"),
-                ServiciosSecundarios.crearBoton("Lista de categorías", 'getLista("categorias")', "#1ContenedorModal", "btn-outline-primary m-2 ", "listaCategorias"),
-                ServiciosSecundarios.crearBoton("Crear categoría", "showForm()", "#2ContenedorModal", "btn-outline-success m-2", "crearCategoria"),
-                ServiciosSecundarios.crearBoton("Modificar categoría", "showForm()", "#2ContenedorModal", "btn-outline-warning m-2", "modificarCategoria"),
-                ServiciosSecundarios.crearBoton("Eliminar categoría", "showForm()", "#2ContenedorModal", "btn-outline-danger m-2", "eliminarCategoria"),
-                ServiciosSecundarios.crearBoton("Buscar categoría por id", "showForm()", "#2ContenedorModal", "btn-outline-info m-2", "buscarCategoria")
-            );
-            videos.append(
-                ServiciosSecundarios.crearTitulo("PANEL DE VIDEOS", "h3"),
-                ServiciosSecundarios.crearBoton("Lista de videos", "getLista('videos')", "#1ContenedorModal", "btn-outline-primary m-2", "listaVideos"),
-                ServiciosSecundarios.crearBoton("Añadir video", "showForm()", "#2ContenedorModal", "btn-outline-success m-2", "crearVideo"),
-                ServiciosSecundarios.crearBoton("Modificar video", "showForm()", "#2ContenedorModal", "btn-outline-warning m-2", "modificarVideo"),
-                ServiciosSecundarios.crearBoton("Eliminar video", "showForm()", "#2ContenedorModal", "btn-outline-danger m-2", "eliminarVideo"),
-                ServiciosSecundarios.crearBoton("Buscar video por id", "showForm()", "#2ContenedorModal", "btn-outline-info m-2", "buscarVideo")
-            );
-
-            todo.append(paneles, usuarios, categorias, videos);
-
-            ServiciosSecundarios.contenidoDinamico($scope, todo, out);
-
-        }
         $scope.loadVideos = function (categoriaId) { //Función necesaria para no crear un loop infinito con getVideos
             $timeout(function () {
                 $scope.getVideos(categoriaId);
@@ -414,38 +391,35 @@ angular.module('VidList', [])
                 }
             });
         };
-
         $scope.getLista = function (tipo, numeroPagina = 1) {
 
             $scope.spinner = true;
-
             let limite = 9;
             let desde = -limite + limite * numeroPagina;
-            let dialog = document.getElementById("modal-dialog")
+            // let dialog = document.getElementById("modal-dialog")
             let contenedor = document.getElementById("contenedor-modal1");
-            contenedor.style.width = "auto";
+            //  contenedor.style.width = "auto";
             let out = document.getElementById("modal-body");
             let titulo = document.getElementById("modal-title");
-            dialog.className = "modal-dialog modal-md modal-lg modal-xl";
-            ServiciosSecundarios.limpieza("", 1);
+            //dialog.className = "modal-dialog modal-md modal-lg modal-xl";
             titulo.textContent = "Lista de " + tipo;
-
+            $scope.tipoModal = tipo;
             let lista = ServiciosSecundarios.crearDiv("", "album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3");
 
             VidListService.busqueda(tipo, desde, limite).then(function (response) {
-                $scope.TotalObjetos = response.data.productos || [];
+                $scope.productos = response.data.productos || [];
                 console.log(response.data);
                 $scope.totalObjetos = response.data.total || 0;
 
-                for (const obj of $scope.TotalObjetos) {
-                    let objeto = ServiciosSecundarios.crearCard(obj, tipo, 2)
-                    lista.append(objeto);
+                //  for (const obj of $scope.productos) {
+                //      let objeto = ServiciosSecundarios.crearCard(obj, tipo, 2)
+                //      lista.append(objeto);
 
-                }
+                //  }
                 let totalPaginas = Math.ceil($scope.totalObjetos / limite);
                 $scope.crearPaginacion(totalPaginas, numeroPagina, tipo);
 
-                ServiciosSecundarios.contenidoDinamico($scope, lista, out)
+                // ServiciosSecundarios.contenidoDinamico($scope, lista, out)
                 $scope.spinner = false;
             });
         }
@@ -460,25 +434,25 @@ angular.module('VidList', [])
 
             $scope.isFormulario = whichModal == 2 ? true : false;
             // console.log($scope.isFormulario)
-            $scope.isBuscarCategoria = clases.contains("buscarCategoria");
-            $scope.isEliminarCategoria = clases.contains("eliminarCategoria");
-            $scope.isCrearCategoria = clases.contains('crearCategoria');
-            $scope.isModificarCategoria = clases.contains("modificarCategoria");
+            $scope.isBuscarCategorias = clases.contains("buscarCategorias");
+            $scope.isEliminarCategorias = clases.contains("eliminarCategorias");
+            $scope.isCrearCategorias = clases.contains('crearCategorias');
+            $scope.isModificarCategorias = clases.contains("modificarCategorias");
 
-            $scope.isBuscarVideo = clases.contains("buscarVideo");
-            $scope.isEliminarVideo = clases.contains("eliminarVideo");
-            $scope.isCrearVideo = clases.contains("crearVideo");
-            $scope.isModificarVideo = clases.contains("modificarVideo");
+            $scope.isBuscarVideos = clases.contains("buscarVideos");
+            $scope.isEliminarVideos = clases.contains("eliminarVideos");
+            $scope.isCrearVideos = clases.contains("crearVideos");
+            $scope.isModificarVideos = clases.contains("modificarVideos");
 
-            $scope.isBuscarUsuario = clases.contains("buscarUsuario");
-            $scope.isEliminarUsuario = clases.contains("eliminarUsuario");
-            $scope.isCrearUsuario = clases.contains("crearUsuario");
-            $scope.isModificarUsuario = clases.contains("modificarUsuario");
+            $scope.isBuscarUsuarios = clases.contains("buscarUsuarios");
+            $scope.isEliminarUsuarios = clases.contains("eliminarUsuarios");
+            $scope.isCrearUsuarios = clases.contains("crearUsuarios");
+            $scope.isModificarUsuarios = clases.contains("modificarUsuarios");
 
             console.log($scope.form)
             $scope.form.url = url ? url : "";
             $scope.form.Nombre = nombre ? nombre : "";
-           // $scope.form.url = url ? url : "";
+            // $scope.form.url = url ? url : "";
             $scope.form.id_categoria = id_categoria ? id_categoria : "";
 
             $scope.id_dada = id_dada ? id_dada : "";
@@ -501,62 +475,64 @@ angular.module('VidList', [])
             //Por problemas con el tamaño del modal, se les da este tamaño por defecto. 
             //Se cambia si son de buscar algo, debido a la funcion de historial
             dialog.className = "modal-dialog modal-sm modal-md modal-lg";
-            $scope.form.titulo = elemento.textContent;
+            $scope.tituloModal = elemento.textContent;
+            // $scope.form.titulo = elemento.textContent;
         }
         $scope.submit = function (formulario) {
+            let dialog = document.getElementById("second-modal-dialog");
             let id, nombre, url, categoria, uid, password, correo;
             switch (true) {
-                case $scope.isBuscarCategoria:
-                   // dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+                case $scope.isBuscarCategorias:
+                    dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                     id = $scope.form.id;
                     VidListService.busquedaEspecifica("categorias", id);
                     break;
-                case $scope.isEliminarCategoria:
+                case $scope.isEliminarCategorias:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
                     VidListService.eliminar("categorias", id);
                     break;
-                case $scope.isCrearCategoria:
+                case $scope.isCrearCategorias:
                     nombre = $scope.form.Nombre;
                     VidListService.crear("categorias", nombre);
                     break;
-                case $scope.isModificarCategoria:
+                case $scope.isModificarCategorias:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
                     nombre = $scope.form.Nombre;
                     VidListService.modificar("categorias", id, nombre);
                     break;
 
-                case $scope.isBuscarVideo:
-                    //dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+                case $scope.isBuscarVideos:
+                    dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                     id = $scope.form.id;
                     VidListService.busquedaEspecifica("videos", id);
                     break;
-                case $scope.isEliminarVideo:
+                case $scope.isEliminarVideos:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
                     VidListService.eliminar("videos", id);
                     break;
-                case $scope.isCrearVideo:
+                case $scope.isCrearVideos:
                     nombre = $scope.form.Nombre;
                     url = $scope.form.url;
                     categoria = $scope.form.id_categoria;
                     VidListService.crear("videos", nombre, "", "", "", url, categoria);
                     break;
-                case $scope.isModificarVideo:
+                case $scope.isModificarVideos:
                     nombre = $scope.form.Nombre;
                     url = $scope.form.url;
                     categoria = $scope.form.id_categoria;
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
                     VidListService.modificar("videos", id, nombre, "", "", "", url, categoria);
                     break;
-                case $scope.isBuscarUsuario:
-                   // dialog.className = "modal-dialog modal-md modal-lg modal-xl";
+                case $scope.isBuscarUsuarios:
+                    dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                     uid = $scope.form.uid;
                     VidListService.busquedaEspecifica("usuarios", uid);
                     break;
-                case $scope.isEliminarUsuario:
+                case $scope.isEliminarUsuarios:
                     uid = $scope.id_dada ? $scope.id_dada : $scope.form.uid;
                     VidListService.eliminar("usuarios", uid);
                     break;
-                case $scope.isCrearUsuario:
+                case $scope.isCrearUsuarios:
                     nombre = $scope.form.Nombre;
                     correo = $scope.form.Correo;
                     password = $scope.form.Password;
@@ -566,7 +542,7 @@ angular.module('VidList', [])
                         VidListService.crear("usuarios", nombre, correo, "USER_ROLE", password);
                     }
                     break;
-                case $scope.isModificarUsuario:
+                case $scope.isModificarUsuarios:
                     uid = $scope.id_dada ? $scope.id_dada : $scope.form.uid;
                     nombre = $scope.form.Nombre;
                     correo = $scope.form.Correo;
@@ -604,11 +580,9 @@ angular.module('VidList', [])
             }
 
             if (tipo) {
-
+                ServiciosSecundarios.limpieza("", 1);
                 ServiciosSecundarios.contenidoDinamico($scope, paginationHTML, document.getElementById('pagination'));
-
             } else if (id_categoria) {
-
                 ServiciosSecundarios.contenidoDinamico($scope, paginationHTML, document.getElementById('paginacion' + id_categoria));
             }
 

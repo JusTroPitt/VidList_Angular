@@ -15,7 +15,7 @@
 
     <script src="./node_modules/angular/angular.min.js"></script>
     <script src="./node_modules/angular-route/angular-route.min.js"></script>
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-sanitize.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-sanitize.js"></script>
     <script src="./controllers.js"></script>
 </head>
 
@@ -68,7 +68,39 @@
 
     <main>
         <div class="bg-body-primary">
+
             <div id="principal"></div>
+            <div id="panelCompleto" ng-if="userRole == 'ADMIN_ROLE'">
+                <h2 class="my-2 mx-1"> PANELES</h2>
+                <div class=" shadow-lg rounded p-3 m-3 bg-body-tertiary" ng-repeat="seccion in seccionesPanel">
+                    <h3> PANEL DE {{seccion | uppercase}} </h3>
+
+                    <button
+                        class="btn shadow btn-outline-primary m-2 lista{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
+                        ng-click="getLista(seccion)" data-bs-toggle="modal" data-bs-target="#1ContenedorModal">Lista de
+                        {{seccion}}</button>
+
+                    <button
+                        class="btn shadow btn-outline-success m-2 crear{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
+                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Crear
+                        {{seccion}}</button>
+
+                    <button
+                        class="btn shadow btn-outline-warning m-2 modificar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
+                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Modificar
+                        {{seccion}}</button>
+
+                    <button
+                        class="btn shadow btn-outline-danger m-2 eliminar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
+                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Eliminar
+                        {{seccion}}</button>
+
+                    <button
+                        class="btn shadow btn-outline-info m-2 buscar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
+                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Buscar
+                        {{seccion}} por id</button>
+                </div>
+            </div>
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
                 <div id="categorias" ng-repeat="categoria in categorias">
@@ -93,7 +125,16 @@
 
                     <div id="contenedor-modal1" class="modal-body pb-5">
                         <div ng-show="spinner" class="spinner-border"></div>
-                        <div id="modal-body"></div>
+                        <div id="modal-body">
+
+                            <div
+                                class="album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3">
+                                <div class="col mb-2" ng-if="!spinner" ng-repeat="producto in productos">
+                                    <div compile-html="crearCard(producto,tipoModal,2)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div id="modal-footer" class="modal-footer d-flex">
                         <div class="col-md-4 justify-content-center d-flex">
@@ -113,7 +154,7 @@
             <div id="second-modal-dialog" class="modal-dialog modal-sm modal-md">
                 <div class="modal-content">
                     <div class="modal-header col-md-4 justify-content-center d-flex">
-                        <h5 class="modal-title" id="second-modal-title"> {{form.titulo}}</h5>
+                        <h5 class="modal-title" id="second-modal-title"> {{tituloModal}}</h5>
                     </div>
                     <div id="second-modal-body" class="modal-body">
 
@@ -121,49 +162,49 @@
                             ng-submit="submit(formulario)">
                             <div class="form-floating">
                                 <div class="form-floating"
-                                    ng-if="!id_dada && ( isBuscarUsuario || isEliminarUsuario || isModificarUsuario)">
+                                    ng-if="!id_dada && ( isBuscarUsuarios || isEliminarUsuarios || isModificarUsuarios)">
                                     <input class="form-control" placeholder="" type="text" required="true" name="uid"
                                         id="uid" ng-model="form.uid"
-                                        ng-if="isBuscarUsuario || isEliminarUsuario || isModificarUsuario">
+                                        ng-if="isBuscarUsuarios || isEliminarUsuarios || isModificarUsuarios">
                                     <label for="uid">uid</label>
                                 </div>
                                 <div class="form-floating"
-                                    ng-if="!id_dadas && (isBuscarCategoria || isEliminarCategoria || isModificarCategoria || isBuscarVideo || isEliminarVideo || isModificarVideo)">
+                                    ng-if="!id_dadas && (isBuscarCategorias || isEliminarCategorias || isModificarCategorias || isBuscarVideos || isEliminarVideos || isModificarVideos)">
                                     <input class="form-control" placeholder="" type="text" required="true" name="id"
                                         id="id" ng-model="form.id"
-                                        ng-if="isBuscarCategoria || isEliminarCategoria || isModificarCategoria || isBuscarVideo || isEliminarVideo || isModificarVideo">
+                                        ng-if="isBuscarCategorias || isEliminarCategorias || isModificarCategorias || isBuscarVideos || isEliminarVideos || isModificarVideos">
                                     <label for="id">id</label>
                                 </div>
                                 <div class="form-floating"
-                                    ng-if="id_dadas && (isEliminarVideo || isEliminarUsuario || isEliminarCategoria)">
+                                    ng-if="id_dadas && (isEliminarVideos || isEliminarUsuarios || isEliminarCategorias)">
                                     <h5>Vas a
                                         eliminar a
                                         este objeto. Si estas seguro de ello, pulsa confirmar</h5>
                                 </div>
                                 <div class="form-floating"
-                                    ng-if="isCrearCategoria || isCrearUsuario || isCrearVideo || isModificarCategoria || isModificarVideo || isModificarUsuario">
+                                    ng-if="isCrearCategorias || isCrearUsuarios || isCrearVideos || isModificarCategorias || isModificarVideos || isModificarUsuarios">
                                     <input type="text" class="form-control" placeholder="" required="true" name="Nombre"
                                         id="Nombre" ng-model="form.Nombre">
                                     <label for="Nombre">Nombre</label>
                                 </div>
-                                <div class="form-floating" ng-if="isCrearUsuario || isModificarUsuario">
+                                <div class="form-floating" ng-if="isCrearUsuarios || isModificarUsuarios">
                                     <input type="email" class="form-control" placeholder="" required="true"
                                         name="Correo" id="Correo" ng-model="form.Correo">
                                     <label for="Correo">Correo</label>
                                 </div>
-                                <div class="form-floating" ng-if="isCrearVideo || isModificarVideo">
+                                <div class="form-floating" ng-if="isCrearVideos || isModificarVideos">
                                     <input type="url" class="form-control" placeholder="" required="true" name="url"
                                         id="url" ng-model="form.url">
                                     <label for="url">url</label>
                                 </div>
-                                <div class="form-floating" ng-if="isCrearVideo || isModificarVideo">
+                                <div class="form-floating" ng-if="isCrearVideos || isModificarVideos">
                                     <select id="" class="form-select form-control my-0" ng-model="form.id_categoria"
                                         ng-options="categoria._id as categoria.nombre for categoria in categorias">
                                         <option class="dropdown-item" value="">Seleccione una categoría</option>
                                     </select>
                                     <label for="Categorias" class="my-0">Categorias</label>
                                 </div>
-                                <div class="form-floating" ng-if="isCrearUsuario || isModificarUsuario">
+                                <div class="form-floating" ng-if="isCrearUsuarios || isModificarUsuarios">
                                     <input type="password" class="form-control" placeholder="" required="true"
                                         name="Password" id="Password" ng-model="form.Password">
                                     <label for="Password">Contraseña</label>
@@ -178,7 +219,7 @@
 
                     </div>
                     <div id="second-modal-footer" class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target=""
+                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target={{destinoModal}}
                             data-bs-dismiss="modal">Cerrar</button>
                         <!-- <button class="btn btn-secondary" data-bs-toggle="modal"
                             data-bs-target="#1ContenedorModal" data-bs-dismiss="modal">Cerrar</button> -->
