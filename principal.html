@@ -104,10 +104,20 @@
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
                 <div id="categorias" ng-repeat="categoria in categorias">
-                    <div id="categoria{{categoria._id}}" class="mx-0 my-2 p-2 rounded bg-body-tertiary shadow-lg">
+                    <div ng-if="videosAMostrar[categoria._id].total !== 0" id="categoria{{categoria._id}}"
+                        class="mx-0 my-2 p-2 rounded bg-body-tertiary shadow-lg">
                         <h3>{{ categoria.nombre }}</h3>
-                        <div id="contenido{{categoria._id}}" ng-init="loadVideos(categoria._id)"></div>
-                        <ul id="paginacion{{categoria._id}}"
+                        <div id="contenido{{categoria._id}}">
+                            <div
+                                class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3  row-cols-xl-4 row-cols-xxl-4 g-3">
+                                <div class="col mb-2" ng-repeat="video in videosAMostrar[categoria._id].videos">
+                                    <div compile-html="crearCard(video,'videos',2)"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div id="contenido{{categoria._id}}" compile-html="loadVideos(categoria._id)"></div> -->
+
+                        <ul id="paginacion{{categoria._id}}" compile-html="crearPaginacion(videosAMostrar[categoria._id].paginas, 1, '', categoria._id)"
                             class="pagination col-md-12 justify-content-end d-flex mt-3 mb-0"></ul>
                     </div>
                 </div>
@@ -115,11 +125,11 @@
         </div>
 
         <div class="modal fade" id="1ContenedorModal" tabindex="-1">
-            <div id="modal-dialog" class="modal-dialog modal-md modal-lg modal-xl">
+            <div id="modal-dialog" class="modal-dialog modal-md modal-lg modal-xl modal-xxl">
                 <div class="modal-content">
 
                     <div class="modal-header">
-                        <h3 class="modal-title" id="modal-title"></h3>
+                        <h3 class="modal-title" id="modal-title"> {{tituloModal}}</h3>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
@@ -139,7 +149,7 @@
                     <div id="modal-footer" class="modal-footer d-flex">
                         <div class="col-md-4 justify-content-center d-flex">
                             <nav>
-                                <ul id="pagination" class="pagination">
+                                <ul id="pagination" class="pagination" compile-html=" crearPaginacion(paginasModal, 1, tipoModal)">
 
                                 </ul>
                             </nav>

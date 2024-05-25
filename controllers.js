@@ -134,16 +134,18 @@ angular.module('VidList', ['ngSanitize'])
             return $http.get("/" + tipo + "/" + id)
                 .then(function (response) {
 
+                    if (response.data.errormsg) {
+                        alert("Error: " + response.data.errormsg);
+                        return response;
+                    } else if (response.data.msg) {
+                        alert(response.data.msg);
+                    }
+
                     let out = document.getElementById("historialBusqueda");
 
                     let objeto = ServiciosSecundarios.crearCard(response.data, tipo, 2);
                     out.prepend(objeto);
 
-                    if (response.data.errormsg) {
-                        alert("Error: " + response.data.errormsg);
-                    } else if (response.data.msg) {
-                        alert(response.data.msg);
-                    }
                     console.log(response);
                     return response;
 
@@ -154,36 +156,16 @@ angular.module('VidList', ['ngSanitize'])
     .factory('ServiciosSecundarios', ($compile) => {
         var ServSecAPI = {};
 
-        ServSecAPI.contenidoDinamico = function (scope, contenido, salida) {
-
-            var compiledElement = $compile(contenido)(scope);
-            for (let numero = 0; numero < compiledElement.length; numero++) {
-                salida.append(compiledElement[numero]);
-            }
-        }
-        ServSecAPI.limpieza = function (id, modal) {
+        ServSecAPI.limpieza = function () {
             var elementosALimpiar = {
-                1: ["historialBusqueda", "modal-title", "pagination"],
-                2: ["second-modal-body", "second-modal-title"],
+                1: ["historialBusqueda", "pagination"],
             };
-
-            if (modal === 1 || modal === 2) {
-                elementosALimpiar[modal].forEach(function (elementId) {
-                    var element = document.getElementById(elementId);
-                    if (element) {
-                        element.innerHTML = "";
-                    }
-                });
-            } else if (id) {
-                var paginacion = document.getElementById("paginacion" + id);
-                if (paginacion) {
-                    paginacion.innerHTML = "";
+            elementosALimpiar[1].forEach(function (elementId) {
+                var element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = "";
                 }
-                var contenido = document.getElementById("contenido" + id);
-                if (contenido) {
-                    contenido.innerHTML = "";
-                }
-            }
+            });
         };
         ServSecAPI.crearDiv = function (id, clase, style) {
             let div = document.createElement("div");
@@ -192,7 +174,6 @@ angular.module('VidList', ['ngSanitize'])
             if (style) { div.style = style; }
             return div;
         }
-
         ServSecAPI.crearInput = function (nombre, type, required = false, value) {
             var container = ServSecAPI.crearDiv("container" + nombre, "form-floating")
             var input = document.createElement('input');
@@ -209,7 +190,6 @@ angular.module('VidList', ['ngSanitize'])
             container.append(input, label);
             return container;
         }
-
         ServSecAPI.crearTitulo = function (texto, forma = "h3", clase) {
             const label = document.createElement(forma);
             label.textContent = texto;
@@ -331,7 +311,7 @@ angular.module('VidList', ['ngSanitize'])
                 });
         };
     })
-    .controller('PrincipalController', function ($scope, $sce, $timeout, VidListService, ServiciosSecundarios) {
+    .controller('PrincipalController', function ($scope, VidListService, ServiciosSecundarios) {
         $scope.categorias = {};
         $scope.nombreUsuario = sessionStorage.getItem("nombre");
         $scope.userRole = sessionStorage.getItem("rol");
@@ -339,101 +319,81 @@ angular.module('VidList', ['ngSanitize'])
         $scope.id_dada = "";
         $scope.seccionesPanel = ["usuarios", "categorias", "videos"];
         $scope.tituloModal = "";
-        $scope.productos = [
-            { name: 'Producto 1', email: 'producto1@gmail.com', uid: 1, rol: 'ADMIN_ROLE' },
-            { name: 'Producto 2', email: 'producto2@gmail.com', uid: 2, rol: 'USER_ROLE' }
-        ];
+        $scope.spinner = false;
+        $scope.videosAMostrar = {};
+        $scope.limitePrincipal = 4;
+        $scope.limiteModal = 9;
         function init() {
             VidListService.busqueda("categorias")
                 .then(function (response) {
                     $scope.categorias = response.data.productos;
-                    $scope.spinner = false;
+                    const promises = [];
+                    for (const categoria of $scope.categorias) {
+                        promises.push(VidListService.videosencategoria(categoria._id, 0, $scope.limitePrincipal).then(function (response) {
+                            return { categoriaId: categoria._id, videos: response.data.videos, total: response.data.total, paginas: Math.ceil(response.data.total / $scope.limitePrincipal) };
+                        }));
+                    }
+                    return Promise.all(promises);
+                })
+                .then(function (videosPorCategoria) {
+                    for (const item of videosPorCategoria) {
+                        $scope.videosAMostrar[item.categoriaId] = { total: item.total, videos: item.videos, paginas: item.paginas }
+                    }
+                    console.log("Aqui tienes");
+                    console.log($scope.videosAMostrar);
+                })
+                .catch(function (error) {
+                    console.error("Error:", error);
                 });
         }
 
         $scope.crearCard = function (objeto, tipo, whichModal) {
             return ServiciosSecundarios.crearCard(objeto, tipo, whichModal).outerHTML;
         };
-        $scope.loadVideos = function (categoriaId) { //Función necesaria para no crear un loop infinito con getVideos
-            $timeout(function () {
-                $scope.getVideos(categoriaId);
-            });
+
+        $scope.getVideos2 = function (id_categoria, numeroPagina = 1) {
+
+            let desde = -$scope.limitePrincipal + $scope.limitePrincipal * numeroPagina;
+            VidListService.videosencategoria(id_categoria, desde, $scope.limitePrincipal).then(function (response) {
+                $scope.videosAMostrar[id_categoria].videos = response.data.videos;
+                $scope.videosAMostrar[id_categoria].total = response.data.total;
+                $scope.videosAMostrar[id_categoria].paginas = Math.ceil(response.data.total / $scope.limitePrincipal)
+
+            })
+
+            // let idPaginacion= "paginacion" + id_categoria;
+            // $scope.marcarPaginaSeleccionada(idPaginacion,numeroPagina);
         };
-        $scope.getVideos = function (id_categoria, numeroPagina = 1) {
-
-            let limite = 4;
-            let desde = -limite + limite * numeroPagina;
-
-            VidListService.videosencategoria(id_categoria, desde, limite).then(function (response) {
-                $scope.videos = response.data.videos || [];
-                console.log(response.data);
-                let totalVideos = response.data.total;
-
-                let contenido = document.getElementById("contenido" + id_categoria);
-                ServiciosSecundarios.limpieza(id_categoria);
-                if (totalVideos !== 0) {
-                    let totalPaginas = Math.ceil(totalVideos / limite);
-                    let lista = ServiciosSecundarios.crearDiv("", "row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3  row-cols-xl-4 row-cols-xxl-4 g-3")
-                    for (const video of $scope.videos) {
-
-                        let card = ServiciosSecundarios.crearCard(video, "videos", 2);
-                        lista.append(card);
-                        console.log(totalVideos);
-                    }
-                    $scope.crearPaginacion(totalPaginas, numeroPagina, "", id_categoria);
-
-
-                    ServiciosSecundarios.contenidoDinamico($scope, lista, contenido);
-                }
-                else {
-                    let categoria = document.getElementById("categoria" + id_categoria)
-                    categoria.style = "display:none";
-                }
-            });
-        };
+        $scope.marcarPaginaSeleccionada = function (idPaginacion, numeroPagina = 1) {
+            let children = document.getElementById(idPaginacion).children;
+            for (var i = 0; i < children.length; i++) {
+                if (numeroPagina == i + 1) { children[i].classList.add("active") }
+                else if (children[i].classList.contains("active")) { children[i].classList.remove("active") }
+            }
+        }
         $scope.getLista = function (tipo, numeroPagina = 1) {
 
             $scope.spinner = true;
-            let limite = 9;
-            let desde = -limite + limite * numeroPagina;
-            // let dialog = document.getElementById("modal-dialog")
-            let contenedor = document.getElementById("contenedor-modal1");
-            //  contenedor.style.width = "auto";
-            let out = document.getElementById("modal-body");
-            let titulo = document.getElementById("modal-title");
-            //dialog.className = "modal-dialog modal-md modal-lg modal-xl";
-            titulo.textContent = "Lista de " + tipo;
+            let desde = -$scope.limiteModal + $scope.limiteModal * numeroPagina;
             $scope.tipoModal = tipo;
-            let lista = ServiciosSecundarios.crearDiv("", "album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3");
+            var elemento = event.currentTarget;
+            if (event.target.classList.contains("listaUsuarios") || event.target.classList.contains("listaCategorias") || event.target.classList.contains("listaVideos")) {
+                $scope.tituloModal = elemento.textContent;
+            }
 
-            VidListService.busqueda(tipo, desde, limite).then(function (response) {
+            VidListService.busqueda(tipo, desde, $scope.limiteModal).then(function (response) {
                 $scope.productos = response.data.productos || [];
-                console.log(response.data);
                 $scope.totalObjetos = response.data.total || 0;
-
-                //  for (const obj of $scope.productos) {
-                //      let objeto = ServiciosSecundarios.crearCard(obj, tipo, 2)
-                //      lista.append(objeto);
-
-                //  }
-                let totalPaginas = Math.ceil($scope.totalObjetos / limite);
-                $scope.crearPaginacion(totalPaginas, numeroPagina, tipo);
-
-                // ServiciosSecundarios.contenidoDinamico($scope, lista, out)
+                $scope.paginasModal = Math.ceil($scope.totalObjetos / $scope.limiteModal);
                 $scope.spinner = false;
             });
         }
         $scope.showForm = function (whichModal = 1, id_dada, nombre = "", url = "", id_categoria = "") {
 
-
-            $scope.spinner = false; //A veces no se llega a esconder despues de haber aparecido antes
+            $scope.spinner = false;
             var elemento = event.currentTarget;
             var clases = elemento.classList;
-            let dialog, out, titulo;
 
-
-            $scope.isFormulario = whichModal == 2 ? true : false;
-            // console.log($scope.isFormulario)
             $scope.isBuscarCategorias = clases.contains("buscarCategorias");
             $scope.isEliminarCategorias = clases.contains("eliminarCategorias");
             $scope.isCrearCategorias = clases.contains('crearCategorias');
@@ -449,35 +409,21 @@ angular.module('VidList', ['ngSanitize'])
             $scope.isCrearUsuarios = clases.contains("crearUsuarios");
             $scope.isModificarUsuarios = clases.contains("modificarUsuarios");
 
-            console.log($scope.form)
             $scope.form.url = url ? url : "";
             $scope.form.Nombre = nombre ? nombre : "";
-            // $scope.form.url = url ? url : "";
             $scope.form.id_categoria = id_categoria ? id_categoria : "";
 
             $scope.id_dada = id_dada ? id_dada : "";
             $scope.form.id = id_dada ? id_dada : "";
             $scope.form.uid = id_dada ? id_dada : "";
 
-            if (whichModal == 2) {
-                out = document.getElementById("second-modal-body");
-                titulo = document.getElementById("second-modal-title");
-                dialog = document.getElementById("second-modal-dialog");
-
-            } else {
-                let contenedor = document.getElementById("contenedor-modal1");
-                out = document.getElementById("modal-body");
-                titulo = document.getElementById("modal-title");
-                dialog = document.getElementById("modal-dialog");
-                contenedor.style.width = "100%";
-                ServiciosSecundarios.limpieza("", whichModal);
-            }
-            //Por problemas con el tamaño del modal, se les da este tamaño por defecto. 
-            //Se cambia si son de buscar algo, debido a la funcion de historial
-            dialog.className = "modal-dialog modal-sm modal-md modal-lg";
+            let dialog = document.getElementById("second-modal-dialog");
+            dialog.className = "modal-dialog modal-sm modal-md";
             $scope.tituloModal = elemento.textContent;
-            // $scope.form.titulo = elemento.textContent;
+
+            ServiciosSecundarios.limpieza();
         }
+
         $scope.submit = function (formulario) {
             let dialog = document.getElementById("second-modal-dialog");
             let id, nombre, url, categoria, uid, password, correo;
@@ -500,7 +446,6 @@ angular.module('VidList', ['ngSanitize'])
                     nombre = $scope.form.Nombre;
                     VidListService.modificar("categorias", id, nombre);
                     break;
-
                 case $scope.isBuscarVideos:
                     dialog.className = "modal-dialog modal-md modal-lg modal-xl";
                     id = $scope.form.id;
@@ -561,16 +506,19 @@ angular.module('VidList', ['ngSanitize'])
 
         $scope.cambiarPagina = function (pageNumber, tipo, id_categoria) {
             if (tipo) {
+                let idPaginacion = "pagination";
                 $scope.getLista(tipo, pageNumber)
+                $scope.marcarPaginaSeleccionada(idPaginacion, pageNumber);
             }
             else {
-                $scope.getVideos(id_categoria, pageNumber);
+                let idPaginacion = "paginacion" + id_categoria;
+                $scope.getVideos2(id_categoria, pageNumber);
+                $scope.marcarPaginaSeleccionada(idPaginacion, pageNumber);
             }
         }
         $scope.crearPaginacion = function (totalPaginas, numeroPagina, tipo, id_categoria) {
 
             let paginationHTML = '';
-
             for (let numero = 1; numero <= totalPaginas; numero++) {
                 if (tipo) {
                     paginationHTML += `<li class="page-item ${numero === numeroPagina ? 'active' : ''}"><a class="page-link" ng-click="cambiarPagina(${numero}, '${tipo}')">${numero}</a></li>`;
@@ -578,14 +526,7 @@ angular.module('VidList', ['ngSanitize'])
                     paginationHTML += `<li class="page-item ${numero === numeroPagina ? 'active' : ''}"><a class="page-link" ng-click="cambiarPagina(${numero},'', '${id_categoria}')">${numero}</a></li>`;
                 }
             }
-
-            if (tipo) {
-                ServiciosSecundarios.limpieza("", 1);
-                ServiciosSecundarios.contenidoDinamico($scope, paginationHTML, document.getElementById('pagination'));
-            } else if (id_categoria) {
-                ServiciosSecundarios.contenidoDinamico($scope, paginationHTML, document.getElementById('paginacion' + id_categoria));
-            }
-
+            return paginationHTML;
         };
 
         init();
