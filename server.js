@@ -310,7 +310,7 @@ function processVideos(req, res, db) {
 
     var id = req.params.id;
 
-    db.get('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,videos.categoria_id,categorias.nombre AS nombreCategoria FROM videos INNER JOIN categorias ON videos.categoria_id = categorias._id WHERE videos._id= ?', id, (err, rows) => {
+    db.get('SELECT videos._id,videos.nombre AS nombreVideo,videos.url, categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos._id= ?', id, (err, rows) => {
         if (err) {
             return res.json({ errormsg: err });
         }
@@ -350,7 +350,7 @@ function processListarVideosEnCategoria(req, res, db) {
                 totalCount = row.totalCount;
             }
         })
-    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,videos.categoria_id,categorias.nombre AS nombreCategoria FROM videos INNER JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ? LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
+    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ? LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
         if (err) {
             return res.json({ errormsg: err });
         } else {
@@ -388,7 +388,7 @@ function processListarVideos(req, res, db) {
                 totalCount = row.totalCount;
             }
         })
-    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,videos.categoria_id,categorias.nombre AS nombreCategoria FROM videos INNER JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
         if (err) {
             return res.json({ errormsg: err });
         } else {

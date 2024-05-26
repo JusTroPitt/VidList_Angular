@@ -82,25 +82,26 @@
 
                     <button
                         class="btn shadow btn-outline-success m-2 crear{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
-                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Crear
+                        ng-click="showForm(seccion)" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Crear
                         {{seccion}}</button>
 
                     <button
                         class="btn shadow btn-outline-warning m-2 modificar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
-                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Modificar
+                        ng-click="showForm(seccion)" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Modificar
                         {{seccion}}</button>
 
                     <button
                         class="btn shadow btn-outline-danger m-2 eliminar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
-                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Eliminar
+                        ng-click="showForm(seccion)" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Eliminar
                         {{seccion}}</button>
 
                     <button
                         class="btn shadow btn-outline-info m-2 buscar{{seccion.charAt(0).toUpperCase() + seccion.slice(1)}}"
-                        ng-click="showForm()" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Buscar
+                        ng-click="showForm(seccion)" data-bs-toggle="modal" data-bs-target="#2ContenedorModal">Buscar
                         {{seccion}} por id</button>
                 </div>
             </div>
+
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
                 <div id="categorias" ng-repeat="categoria in categorias">
@@ -111,36 +112,34 @@
                             <div
                                 class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3  row-cols-xl-4 row-cols-xxl-4 g-3">
                                 <div class="col mb-2" ng-repeat="video in videosAMostrar[categoria._id].videos">
-                                    <div compile-html="crearCard(video,'videos',2)"></div>
+                                    <div compile-html="crearCard(video,'videos')"></div>
                                 </div>
                             </div>
                         </div>
-                        <!-- <div id="contenido{{categoria._id}}" compile-html="loadVideos(categoria._id)"></div> -->
-
-                        <ul id="paginacion{{categoria._id}}" compile-html="crearPaginacion(videosAMostrar[categoria._id].paginas, 1, '', categoria._id)"
+                        <ul id="paginacion{{categoria._id}}"
+                            compile-html="crearPaginacion(videosAMostrar[categoria._id].paginas, 1, '', categoria._id)"
                             class="pagination col-md-12 justify-content-end d-flex mt-3 mb-0"></ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="1ContenedorModal" tabindex="-1">
+        <div class="modal fade" id="1ContenedorModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
             <div id="modal-dialog" class="modal-dialog modal-md modal-lg modal-xl modal-xxl">
                 <div class="modal-content">
-
                     <div class="modal-header">
-                        <h3 class="modal-title" id="modal-title"> {{tituloModal}}</h3>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <h3 class="modal-title" id="modal-title"> {{tituloModal.primerModal}}
+                        </h3>
+                        <button type="button" ng-click="cambiarDestino()" class="btn-close"
+                            data-bs-dismiss="modal"></button>
                     </div>
-
                     <div id="contenedor-modal1" class="modal-body pb-5">
                         <div ng-show="spinner" class="spinner-border"></div>
                         <div id="modal-body">
-
                             <div
                                 class="album row row-cols-1 row-cols-sm-1 row-cols-md-1 row-cols-lg-2 row-cols-xl-3 g-3">
                                 <div class="col mb-2" ng-if="!spinner" ng-repeat="producto in productos">
-                                    <div compile-html="crearCard(producto,tipoModal,2)">
+                                    <div compile-html="crearCard(producto,tipoModal.primerModal)">
                                     </div>
                                 </div>
                             </div>
@@ -149,22 +148,24 @@
                     <div id="modal-footer" class="modal-footer d-flex">
                         <div class="col-md-4 justify-content-center d-flex">
                             <nav>
-                                <ul id="pagination" class="pagination" compile-html=" crearPaginacion(paginasModal, 1, tipoModal)">
-
+                                <ul id="pagination" class="pagination"
+                                    compile-html=" crearPaginacion(paginasModal, 1, tipoModal.primerModal)">
                                 </ul>
                             </nav>
                         </div>
-                        <div class="col-md-4 justify-content-end d-flex"><button type="button" class="btn btn-secondary"
+                        <div class="col-md-4 justify-content-end d-flex"><button type="button"
+                                ng-click="cambiarDestino()" class="btn btn-secondary"
                                 data-bs-dismiss="modal">Cerrar</button></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="2ContenedorModal" tabindex="-2">
+
+        <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="2ContenedorModal" tabindex="-2">
             <div id="second-modal-dialog" class="modal-dialog modal-sm modal-md">
                 <div class="modal-content">
                     <div class="modal-header col-md-4 justify-content-center d-flex">
-                        <h5 class="modal-title" id="second-modal-title"> {{tituloModal}}</h5>
+                        <h5 class="modal-title" id="second-modal-title"> {{tituloModal.segundoModal}}</h5>
                     </div>
                     <div id="second-modal-body" class="modal-body">
 
@@ -179,17 +180,15 @@
                                     <label for="uid">uid</label>
                                 </div>
                                 <div class="form-floating"
-                                    ng-if="!id_dadas && (isBuscarCategorias || isEliminarCategorias || isModificarCategorias || isBuscarVideos || isEliminarVideos || isModificarVideos)">
+                                    ng-if="!id_dada && (isBuscarCategorias || isEliminarCategorias || isModificarCategorias || isBuscarVideos || isEliminarVideos || isModificarVideos)">
                                     <input class="form-control" placeholder="" type="text" required="true" name="id"
                                         id="id" ng-model="form.id"
                                         ng-if="isBuscarCategorias || isEliminarCategorias || isModificarCategorias || isBuscarVideos || isEliminarVideos || isModificarVideos">
                                     <label for="id">id</label>
                                 </div>
                                 <div class="form-floating"
-                                    ng-if="id_dadas && (isEliminarVideos || isEliminarUsuarios || isEliminarCategorias)">
-                                    <h5>Vas a
-                                        eliminar a
-                                        este objeto. Si estas seguro de ello, pulsa confirmar</h5>
+                                    ng-if="id_dada && (isEliminarVideos || isEliminarUsuarios || isEliminarCategorias)">
+                                    Vas a eliminar este objeto. Si estas seguro de ello, pulsa confirmar
                                 </div>
                                 <div class="form-floating"
                                     ng-if="isCrearCategorias || isCrearUsuarios || isCrearVideos || isModificarCategorias || isModificarVideos || isModificarUsuarios">
@@ -223,26 +222,26 @@
                             <button type="submit" class="btn btn-primary w-100 py-2 my-3"> Confirmar
                             </button>
                         </form>
-                        <div id="historialBusqueda"
-                            class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
-                        </div>
 
-                    </div>
-                    <div id="second-modal-footer" class="modal-footer">
-                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target={{destinoModal}}
-                            data-bs-dismiss="modal">Cerrar</button>
-                        <!-- <button class="btn btn-secondary" data-bs-toggle="modal"
-                            data-bs-target="#1ContenedorModal" data-bs-dismiss="modal">Cerrar</button> -->
+                        <div id="historialBusqueda" ng-if="isBuscarCategorias || isBuscarUsuarios || isBuscarVideos"
+                            class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 row-cols-xxl-4 g-2">
+                            <div ng-repeat="objeto in historial[tipoModal.segundoModal]">
+                                <div compile-html="crearCard(objeto,tipoModal.segundoModal,true)">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="second-modal-footer" class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target={{destinoModal}}
+                                data-bs-dismiss="modal">Cerrar</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
     </main>
 
     <footer class="d-flex flex-wrap justify-content-between py-3 my-4 border-top">
 
         <div class="col-md-4 px-2 d-flex align-items-start">
-
             <span class="mb-3 mb-md-0 text-body-secondary">&copy; Realizado por Juan Pedro Pérez Nieto, 2024</span>
         </div>
 
