@@ -6,15 +6,13 @@
     <script src="bootstrap/js/color-modes.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
-    <script src="funciones.js"></script>
-    <!-- <script src="./serviciosServer.js"></script> -->
     <script src="bootstrap/js/bootstrap.bundle.js"></script>
     <link href="estilos.css" rel="stylesheet">
     <link rel="icon" href="imagen.png">
     <title>VidList</title>
-
-    <script src="./node_modules/angular/angular.min.js"></script>
-    <script src="./node_modules/angular-route/angular-route.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <!-- <script src="./node_modules/angular-route/angular-route.min.js"></script> -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-sanitize.js"></script>
     <script src="./controllers.js"></script>
 </head>
@@ -36,8 +34,8 @@
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <a class="dropdown-item d-flex align-items-center" href="index.html"
-                        onclick="sessionStorage.clear()">
+                    <a class="dropdown-item d-flex align-items-center"
+                        ng-click="logout()">
                         <svg class="bi me-2 opacity-50" width="1em" height="1em">
                             <use xlink:href="iconos.svg#logOut"></use>
                         </svg>
@@ -104,7 +102,13 @@
 
             <div id="categoriasContenedor">
                 <h2 class="my-3 mx-1"> CATEGORÍAS</h2>
-                <div id="categorias" ng-repeat="categoria in categorias">
+
+                <div class="mt-3 inputs my-2 px-2 m-3 mb-3 ">
+                    <i class="fa fa-search"></i>
+                    <input type="text" class="form-control bg-body-tertiary shadow-lg form-categorias "
+                        placeholder="Busca cualquier categoría...">
+                </div>
+                <div id="categorias" ng-repeat="categoria in categorias | filter:search">
                     <div ng-if="videosAMostrar[categoria._id].total !== 0" id="categoria{{categoria._id}}"
                         class="mx-0 my-2 p-2 rounded bg-body-tertiary shadow-lg">
                         <h3>{{ categoria.nombre }}</h3>

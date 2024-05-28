@@ -1,1 +1,8 @@
-{}
+{
+  "dependencies": {
+    "angularjs": "^0.0.1",
+    "jwtoken": "^0.0.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
+  }
+}

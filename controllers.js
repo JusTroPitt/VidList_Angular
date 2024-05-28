@@ -5,6 +5,7 @@ angular.module('VidList', ['ngSanitize'])
         var VidListAPI = {};
         var token = null;
 
+
         VidListAPI.login = function (username, passwd) {
             return $http({
                 method: "POST",
@@ -16,18 +17,34 @@ angular.module('VidList', ['ngSanitize'])
             }).then(function (response) {
                 if (response.data.token) {
                     token = response.data.token;
-                    $http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                     sessionStorage.setItem("token", response.data.token);
                     sessionStorage.setItem("rol", response.data.usuario.rol);
                     sessionStorage.setItem("nombre", response.data.usuario.nombre);
+                    sessionStorage.setItem("id", response.data.usuario.uid)
                 }
                 return response;
             });
         };
 
+        VidListAPI.setHeader = function () {
+            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
+        }
+
+        VidListAPI.logout = function () {
+            console.log(sessionStorage.getItem("id") + " " + sessionStorage.getItem("token") )
+            return $http.delete("/logout/" + sessionStorage.getItem("id") + "/" + sessionStorage.getItem("token"))
+                .then(function (response) {
+                    sessionStorage.clear();
+                    return VidListAPI.comprobar(response);
+                })
+                .catch(function (error) {
+                    console.log('Error al eliminar objeto:', error);
+                });
+        }
+
         VidListAPI.eliminar = function (tipo, id) {
 
-            return $http.delete("/" + tipo + "/" + id, { params: { id: id } })
+            return $http.delete("/" + tipo + "/" + id)
                 .then(function (response) {
                     return VidListAPI.comprobar(response);
                 })
@@ -78,7 +95,6 @@ angular.module('VidList', ['ngSanitize'])
                 });
         };
         VidListAPI.videosencategoria = function (categoria_id, desde = 0, limite = 4) {
-            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
             return $http.get('/videosencategoria', {
                 params: {
                     _id: categoria_id,
@@ -90,7 +106,6 @@ angular.module('VidList', ['ngSanitize'])
             });
         }
         VidListAPI.busqueda = function (tipo, desde = 0, limite = 100) {
-            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
             return $http.get('/' + tipo, {
                 params: {
                     desde: desde,
@@ -101,8 +116,6 @@ angular.module('VidList', ['ngSanitize'])
             });
         }
         VidListAPI.busquedaEspecifica = function (tipo, id) {
-
-            $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
             return $http.get("/" + tipo + "/" + id)
                 .then(function (response) {
                     return VidListAPI.comprobar(response);
@@ -111,6 +124,9 @@ angular.module('VidList', ['ngSanitize'])
         VidListAPI.comprobar = function (response) {
             if (response.data.errormsg) {
                 alert("Error: " + response.data.errormsg);
+            } else if (response.data.tokenerrormsg) {
+                alert("Error: " + response.data.tokenerrormsg);
+                window.location.href = "index.html";
             } else if (response.data.msg) {
                 alert(response.data.msg);
             }
@@ -248,7 +264,7 @@ angular.module('VidList', ['ngSanitize'])
         };
     })
     .controller('PrincipalController', function ($scope, VidListService, ServiciosSecundarios) {
-        $scope.categorias = {}; //Contiene las categorias de la ddbb
+        $scope.categorias = []; //Contiene las categorias de la ddbb
         $scope.nombreUsuario = sessionStorage.getItem("nombre");
         $scope.userRole = sessionStorage.getItem("rol");
         $scope.form = {}; // Contiene los datos del formulario
@@ -268,6 +284,7 @@ angular.module('VidList', ['ngSanitize'])
         };
 
         function init() {
+            VidListService.setHeader();
             VidListService.busqueda("categorias")
                 .then(function (response) {
                     $scope.categorias = response.data.productos;
@@ -291,6 +308,9 @@ angular.module('VidList', ['ngSanitize'])
         }
         $scope.crearCard = function (objeto, tipo, historial = false) {
             return ServiciosSecundarios.crearCard(objeto, tipo, historial).outerHTML;
+        }
+        $scope.logout = function () {
+            return VidListService.logout();
         }
         $scope.busquedaEspecifica = function (tipo, id) {
             VidListService.busquedaEspecifica(tipo, id).then(function (response) {

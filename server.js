@@ -1,30 +1,19 @@
 'use strict';
 
-// Cargamos el modulo de Express
-const express = require('express');
+const express = require('express'); // Cargamos el modulo de Express
 
-// Cargamos el modulo para la gestion de sesiones
-const session = require('express-session');
+const session = require('express-session'); // Cargamos el modulo para la gestion de sesiones
 
-// Obtener la referencia al módulo 'body-parser'
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser'); // Obtener la referencia al módulo 'body-parser'
 
-// Cargar el módulo para bases de datos SQLite
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('sqlite3').verbose(); // Cargar el módulo para bases de datos SQLite
 
-// Cargamos el modulo jsonwebtoken
-const jwt = require('jsonwebtoken');
-
-// Configuración del servidor y puerto
-const server = express();
+const server = express(); // Configuración del servidor y puerto
 const port = 8080;
 
-// Configuración del secreto y duración del token JWT
-const jwtSecret = 'practicas-lsi-2024';
-const tokenExpiry = '1h'; // Los tokens expirarán en 1 hora
+const { v4: uuidv4 } = require('uuid');
 
-// Configuración de sesiones
-const sesscfg = {
+const sesscfg = { // Configuración de sesiones
     secret: 'practicas-lsi-2024',
     resave: false,
     saveUninitialized: true,
@@ -32,31 +21,36 @@ const sesscfg = {
 };
 server.use(session(sesscfg));
 
-// Configuración de body-parser
-server.use(bodyParser.urlencoded({ extended: false }));
+server.use(bodyParser.urlencoded({ extended: false })); // Configuración de body-parser
 server.use(bodyParser.json());
 
-// Configurar el enrutador
-const router = express.Router();
+const router = express.Router(); // Configurar el enrutador
 
-// Abrir la base de datos
-var db = new sqlite3.Database('miDDBB.db', (err) => {
+var db = new sqlite3.Database('miDDBB.db', (err) => { // Abrir la base de datos
     if (err) console.log(err);
 });
 
-// Función para procesar el login y generar el token JWT
-function processCorreo(req, res, db) {
+function processCorreo(req, res, db) { // Función para procesar el login y generar el token
     var correo = req.body.user;
     var password = req.body.password;
 
     db.get('SELECT * FROM users WHERE correo=?', correo, (err, row) => {
         if (row == undefined) {
             return res.json({ errormsg: 'El usuario no existe' });
-        } else if (row.password === password) {
+        } else if (err) {
+            return res.json({ errormsg: 'Error: ' + err });
+        }
+        else if (row.password === password) {
             req.session.userID = row.uid;
+            console.log("el rol: " + row.rol);
+            const token = (row.rol == "ADMIN_ROLE") ? "A" + uuidv4() : "U" + uuidv4();
 
-            // Generar el token JWT
-            const token = jwt.sign({ uid: row.uid }, jwtSecret, { expiresIn: tokenExpiry });
+            db.run('INSERT INTO sessionToken (sessionID, user_uid) VALUES (?, ?)', [token, row.uid], function (err) {
+                if (err) {
+                    return console.log(err.message);
+                }
+                console.log('A session with ID ${token} has been created');
+            });
             var data = {
                 usuario: {
                     uid: row.uid,
@@ -129,26 +123,34 @@ function processModificarCategorias(req, res, db) {
 
     db.run('UPDATE categorias SET nombre = ? WHERE _id = ?', [nombre, id], function (err) {
         if (err) {
-          //  console.log("Error al modificar categoria:", err);
             return res.json({ errormsg: "Error al modificar categoria:" + err })
         } else {
-            console.log(id,nombre)
-            console.log("Categoria modificada correctamente");
             return res.json({ msg: "Categoria modificada correctamente" })
+        }
+    });
+}
+function logout(req, res, db) {
+
+    var id = req.params.id;
+    var token = req.params.token;
+    console.log(id + "" + token);
+    db.run("DELETE FROM sessionToken WHERE sessionID = ? AND user_uid = ?", [token, id], function (err) {
+        if (err) {
+            return res.json({ errormsg: "Error al eliminar sesión:" + err })
+        } else {
+            return res.json({ msg: "Sesión eliminada correctamente" })
         }
     });
 }
 
 function processEliminarUsuario(req, res, db) {
 
-    var id = req.query.id;
+    var id = req.params.id;
 
     db.run("DELETE FROM users WHERE uid = ?", id, function (err) {
         if (err) {
-            console.log("Error al eliminar usuario:", err);
             return res.json({ errormsg: "Error al eliminar usuario:" + err })
         } else {
-            console.log("Usuario eliminado correctamente");
             return res.json({ msg: "Usuario eliminado correctamente" })
         }
     });
@@ -156,14 +158,12 @@ function processEliminarUsuario(req, res, db) {
 
 function processEliminarVideo(req, res, db) {
 
-    var id = req.query.id;
+    var id = req.params.id;
 
     db.run("DELETE FROM videos WHERE _id = ?", id, function (err) {
         if (err) {
-            console.log("Error al eliminar video:", err);
             return res.json({ errormsg: "Error al eliminar video:" + err })
         } else {
-            console.log("Video eliminado correctamente");
             return res.json({ msg: "Video eliminado correctamente" })
         }
     });
@@ -171,14 +171,12 @@ function processEliminarVideo(req, res, db) {
 
 function processEliminarCategoria(req, res, db) {
 
-    var id = req.query.id;
+    var id = req.params.id;
 
     db.run("DELETE FROM categorias WHERE _id = ?", id, function (err) {
         if (err) {
-            console.log("Error al eliminar categoria:", err);
             return res.json({ errormsg: "Error al eliminar categoria:" + err })
         } else {
-            console.log("Categoria eliminada correctamente");
             return res.json({ msg: "Categoria eliminada correctamente" })
         }
     });
@@ -191,10 +189,8 @@ function processCrearVideo(req, res, db) {
 
     db.run('INSERT INTO videos (nombre,url,categoria_id) VALUES (?,?,?)', [nombre, url, categoria], function (err) {
         if (err) {
-            console.log("Error al insertar video:", err);
             return res.json({ errormsg: err });
         } else {
-            console.log("Video insertado correctamente");
             return res.json({ msg: "Video insertado correctamente" });
         }
     });
@@ -205,30 +201,58 @@ function processCrearCategoria(req, res, db) {
 
     db.run('INSERT INTO categorias (nombre) VALUES (?)', nombre, function (err) {
         if (err) {
-            console.log("Error al insertar categoria:", err);
             return res.json({ errormsg: err });
         } else {
-            console.log("Categoria insertada correctamente");
             return res.json({ msg: "Categoria insertada correctamente" });
         }
     });
 }
 
-// Verificar el token JWT
+// Verificar el token
 function verifyToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
-        return res.json({ errormsg: 'No token provided' });
+        return res.json({ errormsg: 'Sin cabezera con token' });
     }
-
     const token = authHeader.split(' ')[1];
-    jwt.verify(token, jwtSecret, (err, decoded) => {
-        if (err) {
-            return res.json({ errormsg: 'Failed to authenticate token' });
-        }
-        req.userId = decoded.uid;
-        next();
+
+    var fechaActual = new Date();
+    var año = fechaActual.getUTCFullYear();
+    var mes = String(fechaActual.getUTCMonth() + 1).padStart(2, '0'); // Meses de 0-11, se suma 1
+    var dia = String(fechaActual.getUTCDate()).padStart(2, '0'); // Día del mes con dos dígitos
+    var horas = String(fechaActual.getUTCHours()).padStart(2, '0'); // Horas con dos dígitos
+    var minutos = String(fechaActual.getUTCMinutes()).padStart(2, '0'); // Minutos con dos dígitos
+    var segundos = String(fechaActual.getUTCSeconds()).padStart(2, '0'); // Segundos con dos dígitos
+    var fecha = año + '-' + mes + '-' + dia + ' ' + horas + ':' + minutos + ':' + segundos;
+
+    db.serialize(() => {
+        db.run('UPDATE sessionToken SET last_request = ? WHERE sessionID = ?', [fecha, token], function (err) {
+            if (err) {
+                return res.json({ errormsg: "Error al introducir fecha:" + err })
+            } else { }
+        });
+        db.get('SELECT * FROM sessionToken WHERE sessionId = ?', [token], (err, row) => {
+            if (err) {
+                return res.json({ tokenerrormsg: 'Failed to authenticate token' });
+            }
+            if (row) {
+                console.log(row);
+                console.log(fecha);
+                next();
+            } else {
+                console.log('No session found with that ID');
+                return res.json({ tokenerrormsg: 'Failed to authenticate token' });
+            }
+        });
     });
+}
+
+function isAdmin(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader.split(' ')[1];
+
+    if (token[0] == "A") next();
+    else return res.json({ errormsg: "Proceso no autorizado" });
 }
 
 function processListarCategorias(req, res, db) {
@@ -236,9 +260,8 @@ function processListarCategorias(req, res, db) {
     var desde = parseInt(req.query.desde, 10);
     var limite = parseInt(req.query.limite, 10);
     var totalCount = 0;
-    db.get(
-        'SELECT COUNT(*) AS totalCount FROM categorias',
-        (err, row) => {
+    db.serialize(() => {
+        db.get('SELECT COUNT(*) AS totalCount FROM categorias', (err, row) => {
             if (err) {
                 console.error(err.message);
                 return res.json({ errormsg: 'Error en la consulta de la base de datos' + err });
@@ -246,25 +269,24 @@ function processListarCategorias(req, res, db) {
                 totalCount = row.totalCount;
             }
         })
-    db.all('SELECT _id, nombre FROM categorias LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
-        if (err) {
-            return res.json({ errormsg: 'Database query error' + err });
-        } else {
-            var categorias = [];
-            for (var i = 0; i < rows.length; i++) {
-                categorias.push({
-                    _id: rows[i]._id,
-                    nombre: rows[i].nombre
-                });
+        db.all('SELECT _id, nombre FROM categorias LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+            if (err) {
+                return res.json({ errormsg: 'Database query error' + err });
+            } else {
+                var categorias = [];
+                for (var i = 0; i < rows.length; i++) {
+                    categorias.push({
+                        _id: rows[i]._id,
+                        nombre: rows[i].nombre
+                    });
+                }
+                var data = {
+                    productos: categorias,
+                    total: totalCount
+                };
+                return res.json(data);
             }
-            var data = {
-                productos: categorias,
-                total: totalCount
-            };
-            console.log(data);
-            console.log(desde + " " + limite);
-            return res.json(data);
-        }
+        });
     });
 }
 function processCategoria(req, res, db) {
@@ -275,7 +297,6 @@ function processCategoria(req, res, db) {
         if (err) {
             return res.json({ errormsg: err });
         } else if (rows) {
-            console.log(id)
             var data = {
                 _id: rows._id,
                 nombre: rows.nombre
@@ -293,7 +314,6 @@ function processUsuario(req, res, db) {
         if (err) {
             return res.json({ errormsg: err });
         } else if (rows) {
-            console.log(id)
             var data = {
                 uid: rows.uid,
                 nombre: rows.nombre,
@@ -315,7 +335,6 @@ function processVideos(req, res, db) {
             return res.json({ errormsg: err });
         }
         else if (rows) {
-            console.log(id)
             var data = {
                 _id: rows._id,
                 nombre: rows.nombreVideo,
@@ -325,7 +344,6 @@ function processVideos(req, res, db) {
                     nombre: rows.nombreCategoria
                 }
             }
-            console.log(data);
             return res.json(data);
         } else {
             return res.json({ errormsg: 'Video no encontrado' });
@@ -339,116 +357,118 @@ function processListarVideosEnCategoria(req, res, db) {
     var desde = parseInt(req.query.desde, 10);
     var limite = parseInt(req.query.limite, 10);
     var totalCount = 0;
-
-    db.get(
-        'SELECT COUNT(*) AS totalCount FROM videos WHERE categoria_id = ?',
-        [categoria_id],
-        (err, row) => {
+    db.serialize(() => {
+        db.get(
+            'SELECT COUNT(*) AS totalCount FROM videos WHERE categoria_id = ?',
+            [categoria_id],
+            (err, row) => {
+                if (err) {
+                    return res.json({ errormsg: err });
+                } else {
+                    totalCount = row.totalCount;
+                }
+            })
+        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ? LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
             if (err) {
                 return res.json({ errormsg: err });
             } else {
-                totalCount = row.totalCount;
+                var videos = [];
+                for (var i = 0; i < rows.length; i++) {
+                    videos.push({
+                        _id: rows[i]._id,
+                        nombre: rows[i].nombreVideo,
+                        url: rows[i].url,
+                        categoria: {
+                            _id: rows[i].categoria_id,
+                            nombre: rows[i].nombreCategoria
+                        }
+                    });
+                }
+                var data = {
+                    videos: videos,
+                    total: totalCount
+                };
+                return res.json(data);
             }
-        })
-    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ? LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
-        if (err) {
-            return res.json({ errormsg: err });
-        } else {
-            var videos = [];
-            for (var i = 0; i < rows.length; i++) {
-                videos.push({
-                    _id: rows[i]._id,
-                    nombre: rows[i].nombreVideo,
-                    url: rows[i].url,
-                    categoria: {
-                        _id: rows[i].categoria_id,
-                        nombre: rows[i].nombreCategoria
-                    }
-                });
-            }
-            var data = {
-                videos: videos,
-                total: totalCount
-            };
-            return res.json(data);
-        }
+        });
     });
 }
 function processListarVideos(req, res, db) {
     var desde = parseInt(req.query.desde, 10);
     var limite = parseInt(req.query.limite, 10);
     var totalCount = 0;
-    db.get(
-        'SELECT COUNT(*) AS totalCount FROM videos',
-        (err, row) => {
+    db.serialize(() => {
+        db.get(
+            'SELECT COUNT(*) AS totalCount FROM videos',
+            (err, row) => {
+                if (err) {
+                    console.error(err.message);
+                    return res.json({ errormsg: err });
+                } else {
+                    totalCount = row.totalCount;
+                }
+            })
+        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
             if (err) {
-                console.error(err.message);
                 return res.json({ errormsg: err });
             } else {
-                totalCount = row.totalCount;
+                var videos = [];
+                for (var i = 0; i < rows.length; i++) {
+                    videos.push({
+                        _id: rows[i]._id,
+                        nombre: rows[i].nombreVideo,
+                        url: rows[i].url,
+                        categoria: {
+                            _id: rows[i].categoria_id,
+                            nombre: rows[i].nombreCategoria
+                        }
+                    });
+                }
+                var data = {
+                    productos: videos,
+                    total: totalCount
+                };
+                return res.json(data);
             }
-        })
-    db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
-        if (err) {
-            return res.json({ errormsg: err });
-        } else {
-            var videos = [];
-            for (var i = 0; i < rows.length; i++) {
-                videos.push({
-                    _id: rows[i]._id,
-                    nombre: rows[i].nombreVideo,
-                    url: rows[i].url,
-                    categoria: {
-                        _id: rows[i].categoria_id,
-                        nombre: rows[i].nombreCategoria
-                    }
-                });
-            }
-            var data = {
-                productos: videos,
-                total: totalCount
-            };
-            console.log(data);
-            console.log(desde + " " + limite);
-            return res.json(data);
-        }
+        });
     });
 }
 function processListarUsuarios(req, res, db) {
     var desde = parseInt(req.query.desde, 10);
     var limite = parseInt(req.query.limite, 10);
     var totalCount = 0;
-    db.get(
-        'SELECT COUNT(*) AS totalCount FROM users',
-        (err, row) => {
+    db.serialize(() => {
+        db.get(
+            'SELECT COUNT(*) AS totalCount FROM users',
+            (err, row) => {
+                if (err) {
+                    return res.json({ errormsg: 'Error en la consulta de la base de datos' });
+                } else {
+                    totalCount = row.totalCount;
+                }
+            })
+        db.all('SELECT uid,nombre,correo,rol FROM users LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
             if (err) {
-                return res.json({ errormsg: 'Error en la consulta de la base de datos' });
+                return res.json({ errormsg: 'Database query error' });
             } else {
-                totalCount = row.totalCount;
+                var usuarios = [];
+                for (var i = 0; i < rows.length; i++) {
+                    usuarios.push({
+                        uid: rows[i].uid,
+                        nombre: rows[i].nombre,
+                        correo: rows[i].correo,
+                        rol: rows[i].rol,
+                    });
+                }
+                var data = {
+                    productos: usuarios,
+                    total: totalCount
+                };
+                return res.json(data);
             }
-        })
-    db.all('SELECT uid,nombre,correo,rol FROM users LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
-        if (err) {
-            return res.json({ errormsg: 'Database query error' });
-        } else {
-            var usuarios = [];
-            for (var i = 0; i < rows.length; i++) {
-                usuarios.push({
-                    uid: rows[i].uid,
-                    nombre: rows[i].nombre,
-                    correo: rows[i].correo,
-                    rol: rows[i].rol,
-                });
-            }
-            var data = {
-                productos: usuarios,
-                total: totalCount
-            };
-            return res.json(data);
-        }
+        });
     });
 }
-
 
 router.post('/login', (req, res) => {
     if (!req.body.user || !req.body.password) {
@@ -458,7 +478,7 @@ router.post('/login', (req, res) => {
     }
 });
 
-router.post('/usuarios', (req, res) => {
+router.post('/usuarios', verifyToken, isAdmin, (req, res) => {
     if (!req.body.nombre || !req.body.correo || !req.body.password || !req.body.rol) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -466,7 +486,7 @@ router.post('/usuarios', (req, res) => {
     }
 });
 
-router.post('/videos', (req, res) => {
+router.post('/videos', verifyToken, isAdmin, (req, res) => {
     if (!req.body.nombre || !req.body.url || !req.body.categoria) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -474,7 +494,7 @@ router.post('/videos', (req, res) => {
     }
 });
 
-router.post('/categorias', (req, res) => {
+router.post('/categorias', verifyToken, isAdmin, (req, res) => {
     if (!req.body.nombre) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -482,7 +502,7 @@ router.post('/categorias', (req, res) => {
     }
 });
 
-router.put('/usuarios', (req, res) => {
+router.put('/usuarios', verifyToken, isAdmin, (req, res) => {
     if (!req.body.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -490,7 +510,7 @@ router.put('/usuarios', (req, res) => {
     }
 });
 
-router.put('/categorias', (req, res) => {
+router.put('/categorias', verifyToken, isAdmin, (req, res) => {
     if (!req.body.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -498,7 +518,7 @@ router.put('/categorias', (req, res) => {
     }
 });
 
-router.put('/videos', (req, res) => {
+router.put('/videos', verifyToken, isAdmin, (req, res) => {
     if (!req.body.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     } else {
@@ -507,7 +527,7 @@ router.put('/videos', (req, res) => {
 });
 
 
-router.delete('/usuarios/:id', (req, res) => {
+router.delete('/usuarios/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -516,7 +536,7 @@ router.delete('/usuarios/:id', (req, res) => {
     }
 });
 
-router.delete('/videos/:id', (req, res) => {
+router.delete('/videos/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -525,7 +545,7 @@ router.delete('/videos/:id', (req, res) => {
     }
 });
 
-router.delete('/categorias/:id', (req, res) => {
+router.delete('/categorias/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -534,7 +554,7 @@ router.delete('/categorias/:id', (req, res) => {
     }
 });
 
-router.get('/categorias/:id', verifyToken, (req, res) => {
+router.get('/categorias/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -543,7 +563,7 @@ router.get('/categorias/:id', verifyToken, (req, res) => {
     }
 });
 
-router.get('/usuarios/:id', verifyToken, (req, res) => {
+router.get('/usuarios/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -552,7 +572,7 @@ router.get('/usuarios/:id', verifyToken, (req, res) => {
     }
 });
 
-router.get('/videos/:id', verifyToken, (req, res) => {
+router.get('/videos/:id', verifyToken, isAdmin, (req, res) => {
     if (!req.params.id) {
         return res.json({ errormsg: 'Peticion mal formada' });
     }
@@ -589,17 +609,20 @@ router.get('/videosencategoria', verifyToken, (req, res) => {
         processListarVideosEnCategoria(req, res, db);
     }
 });
+router.delete('/logout/:id/:token', (req, res) => {
+    if (!req.params.id || !req.params.token) {
+        return res.json({ errormsg: 'Peticion mal formada' });
+    }
+    else {
+        console.log(req.params.id + " " + req.params.token)
+        logout(req, res, db);
+    }
+});
 
+server.use('/', router); // Añadir las rutas al servidor
 
+server.use(express.static('.')); // Añadir las rutas estáticas al servidor.
 
-// Añadir las rutas al servidor
-server.use('/', router);
-
-// Añadir las rutas estáticas al servidor.
-server.use(express.static('.'));
-
-
-// Poner en marcha el servidor
-server.listen(port, () => {
+server.listen(port, () => { // Poner en marcha el servidor
     console.log(`Servidor corriendo en el puerto ${port}`);
 });
