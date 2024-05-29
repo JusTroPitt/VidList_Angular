@@ -1,10 +1,9 @@
 'use strict';
 
-angular.module('VidList', ['ngSanitize'])
-    .factory('VidListService', ($http) => {
+angular.module('VidList', ['ngSanitize', 'ngRoute'])
+    .factory('VidListService', ($http, $location) => {
         var VidListAPI = {};
         var token = null;
-
 
         VidListAPI.login = function (username, passwd) {
             return $http({
@@ -25,36 +24,30 @@ angular.module('VidList', ['ngSanitize'])
                 return response;
             });
         };
-
         VidListAPI.setHeader = function () {
             $http.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem("token");
         }
-
         VidListAPI.logout = function () {
-            console.log(sessionStorage.getItem("id") + " " + sessionStorage.getItem("token") )
+            console.log(sessionStorage.getItem("id") + " " + sessionStorage.getItem("token"))
             return $http.delete("/logout/" + sessionStorage.getItem("id") + "/" + sessionStorage.getItem("token"))
                 .then(function (response) {
                     sessionStorage.clear();
                     return VidListAPI.comprobar(response);
                 })
                 .catch(function (error) {
-                    console.log('Error al eliminar objeto:', error);
+                    alert('Error al eliminar sesión:' + error);
                 });
         }
-
         VidListAPI.eliminar = function (tipo, id) {
-
             return $http.delete("/" + tipo + "/" + id)
                 .then(function (response) {
                     return VidListAPI.comprobar(response);
                 })
                 .catch(function (error) {
-                    console.log('Error al eliminar objeto:', error);
+                    alert('Error al eliminar objeto:' + error);
                 });
         }
-
         VidListAPI.crear = function (tipo, nombre, correo, rol, password, url, categoria) {
-
             let datos = {};
             if (nombre) { datos.nombre = nombre; };
             if (correo) { datos.correo = correo; };
@@ -69,11 +62,11 @@ angular.module('VidList', ['ngSanitize'])
                 data: datos
             }).then(function (response) {
                 return VidListAPI.comprobar(response);
+            }).catch(function (error) {
+                alert('Error: ' + error);
             });
         };
-
         VidListAPI.modificar = function (tipo, id, nombre, correo, rol, password, url, categoria) {
-
             let datos = {};
             datos.id = id;
             if (nombre) { datos.nombre = nombre; };
@@ -89,10 +82,9 @@ angular.module('VidList', ['ngSanitize'])
                 data: datos
             }).then(function (response) {
                 return VidListAPI.comprobar(response);
-            })
-                .catch(function (error) {
-                    console.log('Error al modificar objeto:', error);
-                });
+            }).catch(function (error) {
+                alert('Error: ' + error);
+            });
         };
         VidListAPI.videosencategoria = function (categoria_id, desde = 0, limite = 4) {
             return $http.get('/videosencategoria', {
@@ -103,6 +95,8 @@ angular.module('VidList', ['ngSanitize'])
                 }
             }).then(function (response) {
                 return VidListAPI.comprobar(response);
+            }).catch(function (error) {
+                alert('Error: ' + error);
             });
         }
         VidListAPI.busqueda = function (tipo, desde = 0, limite = 100) {
@@ -113,20 +107,24 @@ angular.module('VidList', ['ngSanitize'])
                 }
             }).then(function (response) {
                 return VidListAPI.comprobar(response);
+            }).catch(function (error) {
+                alert('Error: ' + error);
             });
         }
         VidListAPI.busquedaEspecifica = function (tipo, id) {
             return $http.get("/" + tipo + "/" + id)
                 .then(function (response) {
                     return VidListAPI.comprobar(response);
-                })
+                }).catch(function (error) {
+                    alert('Error: ' + error);
+                });
         }
         VidListAPI.comprobar = function (response) {
             if (response.data.errormsg) {
                 alert("Error: " + response.data.errormsg);
             } else if (response.data.tokenerrormsg) {
                 alert("Error: " + response.data.tokenerrormsg);
-                window.location.href = "index.html";
+                $location.path('/');
             } else if (response.data.msg) {
                 alert(response.data.msg);
             }
@@ -134,6 +132,17 @@ angular.module('VidList', ['ngSanitize'])
             return response;
         }
         return VidListAPI;
+    })
+    .config(function ($routeProvider) {
+        $routeProvider.when('/', {
+            controller: 'LoginController',
+            templateUrl: 'login.html'
+        }).when('/principal', {
+            controller: 'PrincipalController',
+            templateUrl: 'principal.html'
+        }).otherwise({
+            redirectTo: '/'
+        })
     })
     .factory('ServiciosSecundarios', () => {
         var ServSecAPI = {};
@@ -175,7 +184,7 @@ angular.module('VidList', ['ngSanitize'])
                 let correo = ServSecAPI.crearTitulo(objeto.correo, "h5", "card-card-subtitle mb-2 text-muted");
                 let uid = ServSecAPI.crearTitulo("UID: " + objeto.uid, "h6", "card-text");
                 let rol = ServSecAPI.crearTitulo("Rol: " + objeto.rol, "h6", "card-text");
-                let modificar = ServSecAPI.crearBoton("Modificar usuario", "showForm('" + tipo + "'," + objeto.uid + ", '" + objeto.nombre + "','','','" + objeto.correo + "')", target, "btn-outline-warning m-2", "modificarUsuarios");
+                let modificar = ServSecAPI.crearBoton("Modificar usuario", "showForm('" + tipo + "'," + objeto.uid + ", '" + objeto.nombre + "','','','" + objeto.correo + "','" + objeto.rol + "')", target, "btn-outline-warning m-2", "modificarUsuarios");
                 let eliminar = ServSecAPI.crearBoton("Eliminar usuario", "showForm('" + tipo + "'," + objeto.uid + ")", target, "btn-outline-danger m-2", "eliminarUsuarios");
 
                 botones.append(modificar, eliminar);
@@ -211,7 +220,6 @@ angular.module('VidList', ['ngSanitize'])
             return columna;
         }
         ServSecAPI.crearBoton = function (texto, listener, target, clases, accion = "") {
-
             const boton = document.createElement("button");
             boton.textContent = texto;
             boton.classList = "btn shadow " + clases + " " + accion;
@@ -241,7 +249,10 @@ angular.module('VidList', ['ngSanitize'])
             }
         };
     }])
-    .controller('LoginController', function ($scope, VidListService) {
+    .controller('LoginController', function ($scope, $location, VidListService) {
+        $scope.theme = localStorage.getItem("theme") ? localStorage.getItem("theme") : "dark";
+        localStorage.setItem("theme", $scope.theme);
+        $scope.bodyClass = 'login';
         $scope.registered = false;
         $scope.user = "";
         $scope.password = "";
@@ -257,19 +268,27 @@ angular.module('VidList', ['ngSanitize'])
                         $scope.registered = response.data.usuario != undefined;
                         if ($scope.registered) {
                             $scope.userdata = response.data.usuario;
-                            window.location.href = "principal.html"
+                            $location.path('/principal');
                         }
                     }
                 });
         };
+        $scope.changeTheme = function (theme) {
+            $scope.theme = theme;
+            localStorage.setItem("theme", $scope.theme);
+        };
     })
-    .controller('PrincipalController', function ($scope, VidListService, ServiciosSecundarios) {
+    .controller('PrincipalController', function ($scope, $location, VidListService, ServiciosSecundarios) {
+
+        $scope.theme = localStorage.getItem("theme") ? localStorage.getItem("theme") : "dark";
+        localStorage.setItem("theme", $scope.theme);
+        $scope.secondDialogClass = "modal-dialog modal-sm modal-md";
         $scope.categorias = []; //Contiene las categorias de la ddbb
         $scope.nombreUsuario = sessionStorage.getItem("nombre");
         $scope.userRole = sessionStorage.getItem("rol");
         $scope.form = {}; // Contiene los datos del formulario
         $scope.id_dada = "";
-        $scope.seccionesPanel = ["usuarios", "categorias", "videos"]; //Para facilitar la creacion de botones
+        $scope.seccionesPanel = ["usuarios", "categorias", "videos"]; //Para facilitar la creacion de botones y cambiar el nombre de algun objeto si fuera necesario
         $scope.tituloModal = {}; //Contiene los titulos en uso de los modales
         $scope.tipoModal = {}; // Puede ser videos,categorias o usuarios. Para distinguir los datos a cargar
         $scope.spinner = false; //Decide si se muestra o no el div del spinner
@@ -285,7 +304,7 @@ angular.module('VidList', ['ngSanitize'])
 
         function init() {
             VidListService.setHeader();
-            VidListService.busqueda("categorias")
+            VidListService.busqueda($scope.seccionesPanel[1])
                 .then(function (response) {
                     $scope.categorias = response.data.productos;
                     const promises = [];
@@ -300,17 +319,22 @@ angular.module('VidList', ['ngSanitize'])
                     for (const item of videosPorCategoria) {
                         $scope.videosAMostrar[item.categoriaId] = { total: item.total, videos: item.videos, paginas: item.paginas }
                     }
-                    console.log($scope.videosAMostrar);
                 })
                 .catch(function (error) {
                     console.error("Error:", error);
+                    alert('Error:' + error);
                 });
+        }
+        $scope.changeTheme = function (theme) {
+            $scope.theme = theme;
+            localStorage.setItem("theme", $scope.theme);
         }
         $scope.crearCard = function (objeto, tipo, historial = false) {
             return ServiciosSecundarios.crearCard(objeto, tipo, historial).outerHTML;
         }
         $scope.logout = function () {
-            return VidListService.logout();
+            VidListService.logout();
+            $location.path('/index.html');
         }
         $scope.busquedaEspecifica = function (tipo, id) {
             VidListService.busquedaEspecifica(tipo, id).then(function (response) {
@@ -350,7 +374,7 @@ angular.module('VidList', ['ngSanitize'])
                 $scope.spinner = false;
             });
         }
-        $scope.showForm = function (tipo, id_dada, nombre = "", url = "", id_categoria = "", correo = "") {
+        $scope.showForm = function (tipo, id_dada, nombre = "", url = "", id_categoria = "", correo = "", rol = "") {
 
             if (tipo) $scope.tipoModal.segundoModal = tipo;
             $scope.spinner = false;
@@ -371,90 +395,94 @@ angular.module('VidList', ['ngSanitize'])
             $scope.isEliminarUsuarios = clases.contains("eliminarUsuarios");
             $scope.isCrearUsuarios = clases.contains("crearUsuarios");
             $scope.isModificarUsuarios = clases.contains("modificarUsuarios");
-
-            let dialog = document.getElementById("second-modal-dialog");
-            dialog.className = $scope.isBuscarCategorias || $scope.isBuscarUsuarios || $scope.isBuscarVideos ? "modal-dialog modal-md modal-lg modal-xl" : "modal-dialog modal-sm modal-md";
-
+            //Con esto cogen valores los inputs del formulario en caso de modificación de un objeto
+            $scope.secondDialogClass = $scope.isBuscarCategorias || $scope.isBuscarUsuarios || $scope.isBuscarVideos ? "modal-dialog modal-md modal-lg modal-xl" : "modal-dialog modal-sm modal-md";
             $scope.form.url = url ? url : "";
             $scope.form.Correo = correo ? correo : "";
+            $scope.form.rol = rol ? rol : "";
             $scope.form.Nombre = nombre ? nombre : "";
             $scope.form.id_categoria = id_categoria ? id_categoria : "";
 
             $scope.id_dada = id_dada ? id_dada : "";
-            $scope.form.id = id_dada ? id_dada : "";
-            $scope.form.uid = id_dada ? id_dada : "";
-
             $scope.tituloModal.segundoModal = elemento.textContent;
         }
+        $scope.updateCategorias = function () {
+            VidListService.busqueda($scope.seccionesPanel[1])
+                .then(function (response) {
+                    $scope.categorias = response.data.productos;
+                })
+        };
         $scope.submit = function (formulario) {
-            let id, nombre, url, categoria, uid, password, correo;
+            let id, rol, nombre, url, categoria, uid, password, correo;
             switch (true) {
                 case $scope.isBuscarCategorias:
                     id = $scope.form.id;
-                    $scope.busquedaEspecifica("categorias", id);
+                    $scope.busquedaEspecifica($scope.seccionesPanel[1], id);
                     break;
                 case $scope.isEliminarCategorias:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
-                    VidListService.eliminar("categorias", id);
+                    VidListService.eliminar($scope.seccionesPanel[1], id).then(() => {
+                        $scope.updateCategorias();
+                    });
+
                     break;
                 case $scope.isCrearCategorias:
                     nombre = $scope.form.Nombre;
-                    VidListService.crear("categorias", nombre);
+                    VidListService.crear($scope.seccionesPanel[1], nombre).then(() => {
+                        $scope.updateCategorias();
+                    })
                     break;
                 case $scope.isModificarCategorias:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
                     nombre = $scope.form.Nombre;
-                    VidListService.modificar("categorias", id, nombre);
+                    VidListService.modificar($scope.seccionesPanel[1], id, nombre).then(() => {
+                        VidListService.busqueda($scope.seccionesPanel[1])
+                        $scope.updateCategorias();
+                    })
                     break;
                 case $scope.isBuscarVideos:
                     id = $scope.form.id;
-                    $scope.busquedaEspecifica("videos", id);
+                    $scope.busquedaEspecifica($scope.seccionesPanel[2], id);
                     break;
                 case $scope.isEliminarVideos:
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
-                    VidListService.eliminar("videos", id);
+                    VidListService.eliminar($scope.seccionesPanel[2], id);
                     break;
                 case $scope.isCrearVideos:
                     nombre = $scope.form.Nombre;
                     url = $scope.form.url;
                     categoria = $scope.form.id_categoria;
-                    VidListService.crear("videos", nombre, "", "", "", url, categoria);
+                    VidListService.crear($scope.seccionesPanel[2], nombre, "", "", "", url, categoria);
                     break;
                 case $scope.isModificarVideos:
                     nombre = $scope.form.Nombre;
                     url = $scope.form.url;
                     categoria = $scope.form.id_categoria;
                     id = $scope.id_dada ? $scope.id_dada : $scope.form.id;
-                    VidListService.modificar("videos", id, nombre, "", "", "", url, categoria);
+                    VidListService.modificar($scope.seccionesPanel[2], id, nombre, "", "", "", url, categoria);
                     break;
                 case $scope.isBuscarUsuarios:
                     uid = $scope.form.uid;
-                    $scope.busquedaEspecifica("usuarios", uid);
+                    $scope.busquedaEspecifica($scope.seccionesPanel[0], uid);
                     break;
                 case $scope.isEliminarUsuarios:
                     uid = $scope.id_dada ? $scope.id_dada : $scope.form.uid;
-                    VidListService.eliminar("usuarios", uid);
+                    VidListService.eliminar($scope.seccionesPanel[0], uid);
                     break;
                 case $scope.isCrearUsuarios:
                     nombre = $scope.form.Nombre;
                     correo = $scope.form.Correo;
+                    rol = $scope.form.rol;
                     password = $scope.form.Password;
-                    if (password.length < 8) {
-                        alert("La contraseña debe tener al menos 8 caracteres");
-                    } else {
-                        VidListService.crear("usuarios", nombre, correo, "USER_ROLE", password);
-                    }
+                    VidListService.crear($scope.seccionesPanel[0], nombre, correo, rol, password);
                     break;
                 case $scope.isModificarUsuarios:
                     uid = $scope.id_dada ? $scope.id_dada : $scope.form.uid;
                     nombre = $scope.form.Nombre;
                     correo = $scope.form.Correo;
+                    rol = $scope.form.rol;
                     password = $scope.form.Password;
-                    if (password.length < 8) {
-                        alert("La contraseña debe tener al menos 8 caracteres");
-                    } else {
-                        VidListService.modificar("usuarios", uid, nombre, correo, "USER_ROLE", password);
-                    }
+                    VidListService.modificar($scope.seccionesPanel[0], uid, nombre, correo, rol, password);
                     break;
             }
             $scope.form = {};
@@ -474,7 +502,6 @@ angular.module('VidList', ['ngSanitize'])
             }
         }
         $scope.crearPaginacion = function (totalPaginas, numeroPagina, tipo, id_categoria) {
-
             let paginationHTML = '';
             for (let numero = 1; numero <= totalPaginas; numero++) {
                 if (tipo) {

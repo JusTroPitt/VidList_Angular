@@ -41,15 +41,12 @@ function processCorreo(req, res, db) { // Función para procesar el login y gene
             return res.json({ errormsg: 'Error: ' + err });
         }
         else if (row.password === password) {
-            req.session.userID = row.uid;
-            console.log("el rol: " + row.rol);
             const token = (row.rol == "ADMIN_ROLE") ? "A" + uuidv4() : "U" + uuidv4();
 
             db.run('INSERT INTO sessionToken (sessionID, user_uid) VALUES (?, ?)', [token, row.uid], function (err) {
                 if (err) {
-                    return console.log(err.message);
+                    return res.json({ errormsg: 'Fallo de autenticación: ' + err });
                 }
-                console.log('A session with ID ${token} has been created');
             });
             var data = {
                 usuario: {
@@ -66,60 +63,41 @@ function processCorreo(req, res, db) { // Función para procesar el login y gene
         }
     });
 }
-
 function processCrearUsuario(req, res, db) {
-    var nombre = req.body.nombre;
-    var correo = req.body.correo;
-    var rol = req.body.rol;
-    var password = req.body.password;
+    const { nombre, correo, rol, password } = req.body;
 
     db.run('INSERT INTO users (nombre, correo,rol,password) VALUES (?, ?,?,?)', [nombre, correo, rol, password], function (err) {
         if (err) {
-            console.log("Error al insertar usuario:", err);
-            return res.json({ errormsg: err });
+            return res.json({ errormsg: "Error al insertar usuario:" + err });
         } else {
             return res.json({ msg: "Usuario insertado correctamente" });
         }
     });
 }
-
 function processModificarVideo(req, res, db) {
-    var nombre = req.body.nombre;
-    var url = req.body.url;
-    var categoria = req.body.categoria;
-    var id = req.body.id;
+    const { nombre, url, categoria, id } = req.body;
 
     db.run('UPDATE videos SET nombre = ?, url = ?, categoria_id = ? WHERE _id = ?', [nombre, url, categoria, id], function (err) {
         if (err) {
-            console.log("Error al modificar video:", err);
-            return res.json({ errormsg: err })
+            return res.json({ errormsg: "Error al modificar video: " + err })
         } else {
-            console.log("Video modificado correctamente");
             return res.json({ msg: "Video modificado correctamente" })
         }
     });
 }
-
 function processModificarUsuario(req, res, db) {
-    var nombre = req.body.nombre;
-    var correo = req.body.correo;
-    var rol = req.body.rol;
-    var password = req.body.password;
-    var id = req.body.id;
+    const { nombre, correo, rol, password, id } = req.body;
 
     db.run('UPDATE users SET nombre = ?, correo = ?, rol = ?, password= ? WHERE uid = ?', [nombre, correo, rol, password, id], function (err) {
         if (err) {
-            console.log("Error al modificar usuario:", err);
-            return res.json({ errormsg: err })
+            return res.json({ errormsg: "Error al modificar usuario: " + err })
         } else {
-            console.log("Usuario modificado correctamente");
             return res.json({ msg: "Usuario modificado correctamente" })
         }
     });
 }
 function processModificarCategorias(req, res, db) {
-    var nombre = req.body.nombre;
-    var id = req.body.id;
+    const { nombre, id } = req.body;
 
     db.run('UPDATE categorias SET nombre = ? WHERE _id = ?', [nombre, id], function (err) {
         if (err) {
@@ -130,10 +108,9 @@ function processModificarCategorias(req, res, db) {
     });
 }
 function logout(req, res, db) {
-
     var id = req.params.id;
     var token = req.params.token;
-    console.log(id + "" + token);
+
     db.run("DELETE FROM sessionToken WHERE sessionID = ? AND user_uid = ?", [token, id], function (err) {
         if (err) {
             return res.json({ errormsg: "Error al eliminar sesión:" + err })
@@ -142,9 +119,7 @@ function logout(req, res, db) {
         }
     });
 }
-
 function processEliminarUsuario(req, res, db) {
-
     var id = req.params.id;
 
     db.run("DELETE FROM users WHERE uid = ?", id, function (err) {
@@ -155,9 +130,7 @@ function processEliminarUsuario(req, res, db) {
         }
     });
 }
-
 function processEliminarVideo(req, res, db) {
-
     var id = req.params.id;
 
     db.run("DELETE FROM videos WHERE _id = ?", id, function (err) {
@@ -168,9 +141,7 @@ function processEliminarVideo(req, res, db) {
         }
     });
 }
-
 function processEliminarCategoria(req, res, db) {
-
     var id = req.params.id;
 
     db.run("DELETE FROM categorias WHERE _id = ?", id, function (err) {
@@ -181,11 +152,8 @@ function processEliminarCategoria(req, res, db) {
         }
     });
 }
-
 function processCrearVideo(req, res, db) {
-    var nombre = req.body.nombre;
-    var url = req.body.url;
-    var categoria = req.body.categoria;
+    const { nombre, url, categoria } = req.body;
 
     db.run('INSERT INTO videos (nombre,url,categoria_id) VALUES (?,?,?)', [nombre, url, categoria], function (err) {
         if (err) {
@@ -195,7 +163,6 @@ function processCrearVideo(req, res, db) {
         }
     });
 }
-
 function processCrearCategoria(req, res, db) {
     var nombre = req.body.nombre;
 
@@ -207,7 +174,6 @@ function processCrearCategoria(req, res, db) {
         }
     });
 }
-
 // Verificar el token
 function verifyToken(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -233,20 +199,16 @@ function verifyToken(req, res, next) {
         });
         db.get('SELECT * FROM sessionToken WHERE sessionId = ?', [token], (err, row) => {
             if (err) {
-                return res.json({ tokenerrormsg: 'Failed to authenticate token' });
+                return res.json({ tokenerrormsg: 'Fallo en la autenticación del token' });
             }
             if (row) {
-                console.log(row);
-                console.log(fecha);
                 next();
             } else {
-                console.log('No session found with that ID');
-                return res.json({ tokenerrormsg: 'Failed to authenticate token' });
+                return res.json({ tokenerrormsg: 'Fallo en la autenticación del token' });
             }
         });
     });
 }
-
 function isAdmin(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader.split(' ')[1];
@@ -254,7 +216,6 @@ function isAdmin(req, res, next) {
     if (token[0] == "A") next();
     else return res.json({ errormsg: "Proceso no autorizado" });
 }
-
 function processListarCategorias(req, res, db) {
 
     var desde = parseInt(req.query.desde, 10);
@@ -269,17 +230,14 @@ function processListarCategorias(req, res, db) {
                 totalCount = row.totalCount;
             }
         })
-        db.all('SELECT _id, nombre FROM categorias LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+        db.all('SELECT _id, nombre FROM categorias ORDER BY nombre ASC LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
             if (err) {
                 return res.json({ errormsg: 'Database query error' + err });
             } else {
-                var categorias = [];
-                for (var i = 0; i < rows.length; i++) {
-                    categorias.push({
-                        _id: rows[i]._id,
-                        nombre: rows[i].nombre
-                    });
-                }
+                const categorias = rows.map(row => ({
+                    _id: row._id,
+                    nombre: row.nombre
+                }))
                 var data = {
                     productos: categorias,
                     total: totalCount
@@ -307,7 +265,6 @@ function processCategoria(req, res, db) {
         }
     });
 }
-
 function processUsuario(req, res, db) {
     var id = req.params.id;
     db.get('SELECT uid, nombre,correo,rol FROM users WHERE uid= ?', id, (err, rows) => {
@@ -347,11 +304,9 @@ function processVideos(req, res, db) {
             return res.json(data);
         } else {
             return res.json({ errormsg: 'Video no encontrado' });
-
         }
     });
 }
-
 function processListarVideosEnCategoria(req, res, db) {
     var categoria_id = parseInt(req.query._id, 10);
     var desde = parseInt(req.query.desde, 10);
@@ -368,22 +323,20 @@ function processListarVideosEnCategoria(req, res, db) {
                     totalCount = row.totalCount;
                 }
             })
-        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ? LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
+        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id WHERE videos.categoria_id = ?  ORDER BY nombreVideo ASC LIMIT ? OFFSET ?', [categoria_id, limite, desde], (err, rows) => {
             if (err) {
                 return res.json({ errormsg: err });
             } else {
-                var videos = [];
-                for (var i = 0; i < rows.length; i++) {
-                    videos.push({
-                        _id: rows[i]._id,
-                        nombre: rows[i].nombreVideo,
-                        url: rows[i].url,
-                        categoria: {
-                            _id: rows[i].categoria_id,
-                            nombre: rows[i].nombreCategoria
-                        }
-                    });
-                }
+                const videos = rows.map(row => ({
+                    _id: row._id,
+                    nombre: row.nombreVideo,
+                    url: row.url,
+                    categoria: {
+                        _id: row.categoria_id,
+                        nombre: row.nombreCategoria
+                    }
+                }))
+
                 var data = {
                     videos: videos,
                     total: totalCount
@@ -402,28 +355,24 @@ function processListarVideos(req, res, db) {
             'SELECT COUNT(*) AS totalCount FROM videos',
             (err, row) => {
                 if (err) {
-                    console.error(err.message);
                     return res.json({ errormsg: err });
                 } else {
                     totalCount = row.totalCount;
                 }
             })
-        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+        db.all('SELECT videos._id,videos.nombre AS nombreVideo,videos.url,categorias._id AS categoria_id,categorias.nombre AS nombreCategoria FROM videos LEFT JOIN categorias ON videos.categoria_id = categorias._id ORDER BY nombreVideo ASC LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
             if (err) {
                 return res.json({ errormsg: err });
             } else {
-                var videos = [];
-                for (var i = 0; i < rows.length; i++) {
-                    videos.push({
-                        _id: rows[i]._id,
-                        nombre: rows[i].nombreVideo,
-                        url: rows[i].url,
-                        categoria: {
-                            _id: rows[i].categoria_id,
-                            nombre: rows[i].nombreCategoria
-                        }
-                    });
-                }
+                const videos = rows.map(row => ({
+                    _id: row._id,
+                    nombre: row.nombreVideo,
+                    url: row.url,
+                    categoria: {
+                        _id: row.categoria_id,
+                        nombre: row.nombreCategoria
+                    }
+                }))
                 var data = {
                     productos: videos,
                     total: totalCount
@@ -447,19 +396,16 @@ function processListarUsuarios(req, res, db) {
                     totalCount = row.totalCount;
                 }
             })
-        db.all('SELECT uid,nombre,correo,rol FROM users LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
+        db.all('SELECT uid,nombre,correo,rol FROM users ORDER BY nombre ASC LIMIT ? OFFSET ?', [limite, desde], (err, rows) => {
             if (err) {
                 return res.json({ errormsg: 'Database query error' });
             } else {
-                var usuarios = [];
-                for (var i = 0; i < rows.length; i++) {
-                    usuarios.push({
-                        uid: rows[i].uid,
-                        nombre: rows[i].nombre,
-                        correo: rows[i].correo,
-                        rol: rows[i].rol,
-                    });
-                }
+                const usuarios = rows.map(row => ({
+                    uid: row.uid,
+                    nombre: row.nombre,
+                    correo: row.correo,
+                    rol: row.rol
+                }));
                 var data = {
                     productos: usuarios,
                     total: totalCount
@@ -469,154 +415,87 @@ function processListarUsuarios(req, res, db) {
         });
     });
 }
+function validateRequest(variables) {
+    return function (req, res, next) {
+        for (let variable of variables) {
+            if (!req.body[variable] && !req.params[variable] && !req.query[variable]) {
+                return res.json({ errormsg: 'Peticion mal formada' });
+            }
+        }
+        next();
+    };
+}
 
-router.post('/login', (req, res) => {
-    if (!req.body.user || !req.body.password) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processCorreo(req, res, db);
-    }
-});
-
-router.post('/usuarios', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.nombre || !req.body.correo || !req.body.password || !req.body.rol) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processCrearUsuario(req, res, db);
-    }
+router.post('/login', validateRequest(['user', 'password']), (req, res) => {
+    processCorreo(req, res, db);
 });
 
-router.post('/videos', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.nombre || !req.body.url || !req.body.categoria) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processCrearVideo(req, res, db);
-    }
+router.post('/usuarios', verifyToken, isAdmin, validateRequest(['nombre', 'correo', 'password', 'rol']), (req, res) => {
+    processCrearUsuario(req, res, db);
 });
 
-router.post('/categorias', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.nombre) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processCrearCategoria(req, res, db);
-    }
+router.post('/videos', verifyToken, isAdmin, validateRequest(['nombre', 'url', 'categoria']), (req, res) => {
+    processCrearVideo(req, res, db);
 });
 
-router.put('/usuarios', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processModificarUsuario(req, res, db);
-    }
+router.post('/categorias', verifyToken, isAdmin, validateRequest(['nombre']), (req, res) => {
+    processCrearCategoria(req, res, db);
 });
 
-router.put('/categorias', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processModificarCategorias(req, res, db);
-    }
+router.put('/usuarios', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processModificarUsuario(req, res, db);
 });
 
-router.put('/videos', verifyToken, isAdmin, (req, res) => {
-    if (!req.body.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processModificarVideo(req, res, db);
-    }
+router.put('/categorias', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processModificarCategorias(req, res, db);
 });
 
-
-router.delete('/usuarios/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processEliminarUsuario(req, res, db);
-    }
+router.put('/videos', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processModificarVideo(req, res, db);
 });
 
-router.delete('/videos/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processEliminarVideo(req, res, db);
-    }
+router.delete('/usuarios/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processEliminarUsuario(req, res, db);
 });
 
-router.delete('/categorias/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processEliminarCategoria(req, res, db);
-    }
+router.delete('/videos/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processEliminarVideo(req, res, db);
 });
 
-router.get('/categorias/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processCategoria(req, res, db);
-    }
+router.delete('/categorias/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processEliminarCategoria(req, res, db);
 });
 
-router.get('/usuarios/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processUsuario(req, res, db);
-    }
+router.get('/categorias/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processCategoria(req, res, db);
 });
 
-router.get('/videos/:id', verifyToken, isAdmin, (req, res) => {
-    if (!req.params.id) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        processVideos(req, res, db);
-    }
+router.get('/usuarios/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processUsuario(req, res, db);
 });
 
-router.get('/categorias', verifyToken, (req, res) => {
-    if (!req.query.desde || !req.query.limite) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processListarCategorias(req, res, db);
-    }
+router.get('/videos/:id', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+    processVideos(req, res, db);
 });
-router.get('/videos', verifyToken, (req, res) => {
-    if (!req.query.desde || !req.query.limite) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processListarVideos(req, res, db);
-    }
+
+router.get('/categorias', verifyToken, validateRequest(['desde', 'limite']), (req, res) => {
+    processListarCategorias(req, res, db);
 });
-router.get('/usuarios', verifyToken, (req, res) => {
-    if (!req.query.desde || !req.query.limite) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processListarUsuarios(req, res, db);
-    }
+
+router.get('/videos', verifyToken, isAdmin, validateRequest(['desde', 'limite']), (req, res) => {
+    processListarVideos(req, res, db);
 });
-router.get('/videosencategoria', verifyToken, (req, res) => {
-    if (!req.query._id || !req.query.desde || !req.query.limite) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    } else {
-        processListarVideosEnCategoria(req, res, db);
-    }
+
+router.get('/usuarios', verifyToken, isAdmin, validateRequest(['desde', 'limite']), (req, res) => {
+    processListarUsuarios(req, res, db);
 });
-router.delete('/logout/:id/:token', (req, res) => {
-    if (!req.params.id || !req.params.token) {
-        return res.json({ errormsg: 'Peticion mal formada' });
-    }
-    else {
-        console.log(req.params.id + " " + req.params.token)
-        logout(req, res, db);
-    }
+
+router.get('/videosencategoria', verifyToken, validateRequest(['_id', 'desde', 'limite']), (req, res) => {
+    processListarVideosEnCategoria(req, res, db);
+});
+
+router.delete('/logout/:id/:token', verifyToken, validateRequest(['id', 'token']), (req, res) => {
+    logout(req, res, db);
 });
 
 server.use('/', router); // Añadir las rutas al servidor
