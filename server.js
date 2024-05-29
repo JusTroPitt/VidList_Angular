@@ -442,15 +442,15 @@ router.post('/categorias', verifyToken, isAdmin, validateRequest(['nombre']), (r
     processCrearCategoria(req, res, db);
 });
 
-router.put('/usuarios', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+router.put('/usuarios', verifyToken, isAdmin, validateRequest(['id','nombre', 'correo', 'password', 'rol']), (req, res) => {
     processModificarUsuario(req, res, db);
 });
 
-router.put('/categorias', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+router.put('/categorias', verifyToken, isAdmin, validateRequest(['id','nombre']), (req, res) => {
     processModificarCategorias(req, res, db);
 });
 
-router.put('/videos', verifyToken, isAdmin, validateRequest(['id']), (req, res) => {
+router.put('/videos', verifyToken, isAdmin, validateRequest(['id','nombre', 'url', 'categoria']), (req, res) => {
     processModificarVideo(req, res, db);
 });
 

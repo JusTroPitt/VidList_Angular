@@ -3,7 +3,6 @@
 angular.module('VidList', ['ngSanitize', 'ngRoute'])
     .factory('VidListService', ($http, $location) => {
         var VidListAPI = {};
-        var token = null;
 
         VidListAPI.login = function (username, passwd) {
             return $http({
@@ -15,7 +14,6 @@ angular.module('VidList', ['ngSanitize', 'ngRoute'])
                 }
             }).then(function (response) {
                 if (response.data.token) {
-                    token = response.data.token;
                     sessionStorage.setItem("token", response.data.token);
                     sessionStorage.setItem("rol", response.data.usuario.rol);
                     sessionStorage.setItem("nombre", response.data.usuario.nombre);
@@ -249,6 +247,7 @@ angular.module('VidList', ['ngSanitize', 'ngRoute'])
             }
         };
     }])
+
     .controller('LoginController', function ($scope, $location, VidListService) {
         $scope.theme = localStorage.getItem("theme") ? localStorage.getItem("theme") : "dark";
         localStorage.setItem("theme", $scope.theme);
@@ -278,6 +277,7 @@ angular.module('VidList', ['ngSanitize', 'ngRoute'])
             localStorage.setItem("theme", $scope.theme);
         };
     })
+
     .controller('PrincipalController', function ($scope, $location, VidListService, ServiciosSecundarios) {
 
         $scope.theme = localStorage.getItem("theme") ? localStorage.getItem("theme") : "dark";
@@ -287,7 +287,7 @@ angular.module('VidList', ['ngSanitize', 'ngRoute'])
         $scope.nombreUsuario = sessionStorage.getItem("nombre");
         $scope.userRole = sessionStorage.getItem("rol");
         $scope.form = {}; // Contiene los datos del formulario
-        $scope.id_dada = "";
+        $scope.id_dada = ""; //ID de las cards. Se coge como valor en lugar de tener que introducirla manualmente en el formulario
         $scope.seccionesPanel = ["usuarios", "categorias", "videos"]; //Para facilitar la creacion de botones y cambiar el nombre de algun objeto si fuera necesario
         $scope.tituloModal = {}; //Contiene los titulos en uso de los modales
         $scope.tipoModal = {}; // Puede ser videos,categorias o usuarios. Para distinguir los datos a cargar
